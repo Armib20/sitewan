@@ -118,10 +118,10 @@ for (x = 0; x < 3; x++) {
 }
 
 /////////////////////////////////////	
-// CLICK HANDLING
+// MATERIAL CHANGING ONCLICK
 /////////////////////////////////////	
 
-var raycaster = new THREE.Raycaster();
+/* var raycaster = new THREE.Raycaster();
 var mouse = new THREE.Vector2();
 function onMouseClick(event) {
   mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
@@ -140,7 +140,7 @@ function onMouseClick(event) {
     }
   }
 }
-window.addEventListener( 'click', onMouseClick );
+window.addEventListener( 'click', onMouseClick ); */
 
 // special rounding helper function, rounds value to -1.1, 0, 1.1
 function round(v) {
@@ -165,58 +165,70 @@ function onDocumentKeyDown(event) {
     var keyCode = event.which;
     // rotations in orientation red front white up
     if (keyCode == "R".charCodeAt()) {           // rotate right clockwise wrt x
-      rotateXFace(2, -Math.PI / 4);
+      rotateXFace(1.1, -Math.PI / 4);
     } else if (keyCode == "L".charCodeAt()) {    // rotate left counterclockwise wrt x
-      rotateXFace(0, Math.PI / 4);
+      rotateXFace(-1.1, Math.PI / 4);
     } else if (keyCode == "M".charCodeAt()) {    // rotate middle clockwise wrt x
-      rotateXFace(1, -Math.PI / 4);
+      rotateXFace(0, -Math.PI / 4);
     } else if (keyCode == "U".charCodeAt()) {    // rotate top clockwise wrt y
-      rotateYFace(2, -Math.PI / 4);
+      rotateYFace(1.1, -Math.PI / 4);
     } else if (keyCode == "D".charCodeAt()) {    // rotate bottom counterclockwise wrt y
-      rotateYFace(0, Math.PI / 4);
+      rotateYFace(-1.1, Math.PI / 4);
     } else if (keyCode == "F".charCodeAt()) {    // rotate front clockwise wrt z
-      rotateZFace(2, -Math.PI / 4);
+      rotateZFace(1.1, -Math.PI / 4);
     } else if (keyCode == "B".charCodeAt()) {    // rotate back counterclockwise wrt z
-      rotateZFace(0, Math.PI / 4);
+      rotateZFace(-1.1, Math.PI / 4);
     }
 };
 
 // helper function for rotating x faces (R,L,M)
-function rotateXFace(x_idx, rad) {
+function rotateXFace(xpos, rad) {
   var M = new THREE.Matrix4();
   M.makeRotationX(rad);
   // perform rotation
-  for (let y = 0; y < 3; y++) {
-    for (let z = 0; z < 3; z++) {
-      cubesArray3D[x_idx][y][z].matrixAutoUpdate = false;
-      cubesArray3D[x_idx][y][z].matrix.premultiply(M);
-      cubesArray3D[x_idx][y][z].updateMatrixWorld();
+  for (let x = 0; x < 3; x++) {
+    for (let y = 0; y < 3; y++) {
+      for (let z = 0; z < 3; z++) {
+        if (round(cubesArray3D[x][y][z].getWorldPosition().x) == xpos) {
+          cubesArray3D[x][y][z].matrixAutoUpdate = false;
+          cubesArray3D[x][y][z].matrix.premultiply(M);
+          cubesArray3D[x][y][z].updateMatrixWorld();
+        }
+      }
     }
   }
 }
 // helper function for rotating y faces (U, D)
-function rotateYFace(y_idx, rad) {
+function rotateYFace(ypos, rad) {
   var M = new THREE.Matrix4();
   M.makeRotationY(rad);
   // perform rotation
   for (let x = 0; x < 3; x++) {
-    for (let z = 0; z < 3; z++) {
-      cubesArray3D[x][y_idx][z].matrixAutoUpdate = false;
-      cubesArray3D[x][y_idx][z].matrix.premultiply(M);
-      cubesArray3D[x][y_idx][z].updateMatrixWorld();
+    for (let y = 0; y < 3; y++) {
+      for (let z = 0; z < 3; z++) {
+        if (round(cubesArray3D[x][y][z].getWorldPosition().y) == ypos) {
+          cubesArray3D[x][y][z].matrixAutoUpdate = false;
+          cubesArray3D[x][y][z].matrix.premultiply(M);
+          cubesArray3D[x][y][z].updateMatrixWorld();
+        }
+      }
     }
   }
 }
 // helper function for rotating y faces (U, D)
-function rotateZFace(z_idx, rad) {
+function rotateZFace(zpos, rad) {
   var M = new THREE.Matrix4();
   M.makeRotationZ(rad);
   // perform rotation
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
-      cubesArray3D[x][y][z_idx].matrixAutoUpdate = false;
-      cubesArray3D[x][y][z_idx].matrix.premultiply(M);
-      cubesArray3D[x][y][z_idx].updateMatrixWorld();
+      for (let z = 0; z < 3; z++) {
+        if (round(cubesArray3D[x][y][z].getWorldPosition().z) == zpos) {
+          cubesArray3D[x][y][z].matrixAutoUpdate = false;
+          cubesArray3D[x][y][z].matrix.premultiply(M);
+          cubesArray3D[x][y][z].updateMatrixWorld();
+        }
+      }
     }
   }
 }
