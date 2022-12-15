@@ -37,6 +37,62 @@ window.onscroll = function () {
      window.scrollTo(0,0);
 }
 
+// Motion/animation-related variables
+var animRight = false;
+var animLeft = false;
+var animMid = false;
+var animUp = false;
+var animDown = false;
+var animFront = false;
+var animBack = false;
+var rightMotion = new Motion(rotateRFace);
+var leftMotion = new Motion(rotateLFace);
+var middleMotion = new Motion(rotateMFace);
+var upMotion = new Motion(rotateUFace);
+var downMotion = new Motion(rotateDFace);
+var frontMotion = new Motion(rotateFFace);
+var backMotion = new Motion(rotateBFace);
+
+initMotions();
+
+function initMotions() {
+  // keyframes for motion: name, time, [xpos, theta (rad)]
+  rightMotion.addKeyFrame(new Keyframe('beg', 0.0, [1.1, 0, true]));
+  rightMotion.addKeyFrame(new Keyframe('beg', 0.2, [1.1, -Math.PI / 8, true]));
+  rightMotion.addKeyFrame(new Keyframe('mid', 0.4, [1.1, -Math.PI / 8, true]));
+  rightMotion.addKeyFrame(new Keyframe('end', 0.6, [1.1, 0, false]));
+
+  leftMotion.addKeyFrame(new Keyframe('beg', 0.0, [-1.1, 0, true]));
+  leftMotion.addKeyFrame(new Keyframe('beg', 0.2, [-1.1, Math.PI / 8, true]));
+  leftMotion.addKeyFrame(new Keyframe('mid', 0.4, [-1.1, Math.PI / 8, true]));
+  leftMotion.addKeyFrame(new Keyframe('end', 0.6, [-1.1, 0, false]));
+
+  middleMotion.addKeyFrame(new Keyframe('beg', 0.0, [0, 0, true]));
+  middleMotion.addKeyFrame(new Keyframe('beg', 0.2, [0, -Math.PI / 8, true]));
+  middleMotion.addKeyFrame(new Keyframe('mid', 0.4, [0, -Math.PI / 8, true]));
+  middleMotion.addKeyFrame(new Keyframe('end', 0.6, [0, 0, false]));
+
+  upMotion.addKeyFrame(new Keyframe('beg', 0.0, [1.1, 0, true]));
+  upMotion.addKeyFrame(new Keyframe('beg', 0.2, [1.1, -Math.PI / 8, true]));
+  upMotion.addKeyFrame(new Keyframe('mid', 0.4, [1.1, -Math.PI / 8, true]));
+  upMotion.addKeyFrame(new Keyframe('end', 0.6, [1.1, 0, false]));
+
+  downMotion.addKeyFrame(new Keyframe('beg', 0.0, [-1.1, 0, true]));
+  downMotion.addKeyFrame(new Keyframe('beg', 0.2, [-1.1, Math.PI / 8, true]));
+  downMotion.addKeyFrame(new Keyframe('mid', 0.4, [-1.1, Math.PI / 8, true]));
+  downMotion.addKeyFrame(new Keyframe('end', 0.6, [-1.1, 0, false]));
+
+  frontMotion.addKeyFrame(new Keyframe('beg', 0.0, [1.1, 0, true]));
+  frontMotion.addKeyFrame(new Keyframe('beg', 0.2, [1.1, -Math.PI / 8, true]));
+  frontMotion.addKeyFrame(new Keyframe('mid', 0.4, [1.1, -Math.PI / 8, true]));
+  frontMotion.addKeyFrame(new Keyframe('end', 0.6, [1.1, 0, false]));
+
+  backMotion.addKeyFrame(new Keyframe('beg', 0.0, [-1.1, 0, true]));
+  backMotion.addKeyFrame(new Keyframe('beg', 0.2, [-1.1, Math.PI / 8, true]));
+  backMotion.addKeyFrame(new Keyframe('mid', 0.4, [-1.1, Math.PI / 8, true]));
+  backMotion.addKeyFrame(new Keyframe('end', 0.6, [-1.1, 0, false]));
+}
+
 /////////////////////////////////////	
 // ADD LIGHTS  and define a simple material that uses lighting
 /////////////////////////////////////	
@@ -165,21 +221,50 @@ function onDocumentKeyDown(event) {
     var keyCode = event.which;
     // rotations in orientation red front white up
     if (keyCode == "R".charCodeAt()) {           // rotate right clockwise wrt x
-      rotateXFace(1.1, -Math.PI / 4);
+      if (!animUp && !animDown && !animFront && !animBack) animRight = true;
     } else if (keyCode == "L".charCodeAt()) {    // rotate left counterclockwise wrt x
-      rotateXFace(-1.1, Math.PI / 4);
+      if (!animUp && !animDown && !animFront && !animBack) animLeft = true;
     } else if (keyCode == "M".charCodeAt()) {    // rotate middle clockwise wrt x
-      rotateXFace(0, -Math.PI / 4);
+      if (!animUp && !animDown && !animFront && !animBack) animMid = true;
     } else if (keyCode == "U".charCodeAt()) {    // rotate top clockwise wrt y
-      rotateYFace(1.1, -Math.PI / 4);
+      if (!animRight && !animLeft && !animMid && !animFront && !animBack) animUp = true;
     } else if (keyCode == "D".charCodeAt()) {    // rotate bottom counterclockwise wrt y
-      rotateYFace(-1.1, Math.PI / 4);
+      if (!animRight && !animLeft && !animMid && !animFront && !animBack) animDown = true;
     } else if (keyCode == "F".charCodeAt()) {    // rotate front clockwise wrt z
-      rotateZFace(1.1, -Math.PI / 4);
+      if (!animUp && !animDown && !animRight && !animLeft && !animMid) animFront = true;
     } else if (keyCode == "B".charCodeAt()) {    // rotate back counterclockwise wrt z
-      rotateZFace(-1.1, Math.PI / 4);
+      if (!animUp && !animDown && !animRight && !animLeft && !animMid) animBack = true;
     }
 };
+
+function rotateRFace(avars) {
+  animRight = avars[2];
+  rotateXFace(avars[0], avars[1]);
+}
+function rotateLFace(avars) {
+  animLeft = avars[2];
+  rotateXFace(avars[0], avars[1]);
+}
+function rotateMFace(avars) {
+  animMid = avars[2];
+  rotateXFace(avars[0], avars[1]);
+}
+function rotateUFace(avars) {
+  animUp = avars[2];
+  rotateYFace(avars[0], avars[1]);
+}
+function rotateDFace(avars) {
+  animDown = avars[2];
+  rotateYFace(avars[0], avars[1]);
+}
+function rotateFFace(avars) {
+  animFront = avars[2];
+  rotateZFace(avars[0], avars[1]);
+}
+function rotateBFace(avars) {
+  animBack = avars[2];
+  rotateZFace(avars[0], avars[1]);
+}
 
 // helper function for rotating x faces (R,L,M)
 function rotateXFace(xpos, rad) {
@@ -239,6 +324,15 @@ function rotateZFace(zpos, rad) {
 ///////////////////////////////////////////////////////////////////////////////////////
 
 function update() {
+  var dt=0.1;
+  if (animRight) rightMotion.timestep(dt);
+  else if (animLeft) leftMotion.timestep(dt);
+  else if (animMid) middleMotion.timestep(dt);
+  else if (animUp) upMotion.timestep(dt);
+  else if (animDown) downMotion.timestep(dt);
+  else if (animFront) frontMotion.timestep(dt);
+  else if (animBack) backMotion.timestep(dt);
+
   requestAnimationFrame(update);      // requests the next update call;  this creates a loop
   renderer.render(scene, camera);
 }
