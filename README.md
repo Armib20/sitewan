@@ -9,6 +9,5 @@ A Rubik's Cube model built with in-browser rendering 3D graphics library Three.j
 
 
 ## Currently in the works:
-- face rotation animation
 - cube solver
 - face rotation key bindings relative to orientation wrt camera
