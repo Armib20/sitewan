@@ -37,6 +37,7 @@ window.onscroll = function () {
      window.scrollTo(0,0);
 }
 
+var reverse = false;
 // Motion/animation-related variables
 var animRight = false;
 var animLeft = false;
@@ -45,51 +46,58 @@ var animUp = false;
 var animDown = false;
 var animFront = false;
 var animBack = false;
-var rightMotion = new Motion(rotateRFace);
-var leftMotion = new Motion(rotateLFace);
-var middleMotion = new Motion(rotateMFace);
-var upMotion = new Motion(rotateUFace);
-var downMotion = new Motion(rotateDFace);
-var frontMotion = new Motion(rotateFFace);
-var backMotion = new Motion(rotateBFace);
-
-initMotions();
+var rightMotion;
+var leftMotion;
+var middleMotion;
+var upMotion;
+var downMotion;
+var frontMotion;
+var backMotion;
 
 function initMotions() {
+  var theta = Math.PI / 8;
+  if (reverse) theta = -theta;
+  rightMotion = new Motion(rotateRFace);
+  leftMotion = new Motion(rotateLFace);
+  middleMotion = new Motion(rotateMFace);
+  upMotion = new Motion(rotateUFace);
+  downMotion = new Motion(rotateDFace);
+  frontMotion = new Motion(rotateFFace);
+  backMotion = new Motion(rotateBFace);
   // keyframes for motion: name, time, [xpos, theta (rad)]
   rightMotion.addKeyFrame(new Keyframe('beg', 0.0, [1.1, 0, true]));
-  rightMotion.addKeyFrame(new Keyframe('beg', 0.2, [1.1, -Math.PI / 8, true]));
-  rightMotion.addKeyFrame(new Keyframe('mid', 0.4, [1.1, -Math.PI / 8, true]));
+  rightMotion.addKeyFrame(new Keyframe('beg', 0.2, [1.1, -theta, true]));
+  rightMotion.addKeyFrame(new Keyframe('mid', 0.4, [1.1, -theta, true]));
   rightMotion.addKeyFrame(new Keyframe('end', 0.6, [1.1, 0, false]));
 
   leftMotion.addKeyFrame(new Keyframe('beg', 0.0, [-1.1, 0, true]));
-  leftMotion.addKeyFrame(new Keyframe('beg', 0.2, [-1.1, Math.PI / 8, true]));
-  leftMotion.addKeyFrame(new Keyframe('mid', 0.4, [-1.1, Math.PI / 8, true]));
+  leftMotion.addKeyFrame(new Keyframe('beg', 0.2, [-1.1, theta, true]));
+  leftMotion.addKeyFrame(new Keyframe('mid', 0.4, [-1.1, theta, true]));
   leftMotion.addKeyFrame(new Keyframe('end', 0.6, [-1.1, 0, false]));
 
   middleMotion.addKeyFrame(new Keyframe('beg', 0.0, [0, 0, true]));
-  middleMotion.addKeyFrame(new Keyframe('beg', 0.2, [0, -Math.PI / 8, true]));
-  middleMotion.addKeyFrame(new Keyframe('mid', 0.4, [0, -Math.PI / 8, true]));
+  middleMotion.addKeyFrame(new Keyframe('beg', 0.2, [0, -theta, true]));
+  middleMotion.addKeyFrame(new Keyframe('mid', 0.4, [0, -theta, true]));
   middleMotion.addKeyFrame(new Keyframe('end', 0.6, [0, 0, false]));
 
   upMotion.addKeyFrame(new Keyframe('beg', 0.0, [1.1, 0, true]));
-  upMotion.addKeyFrame(new Keyframe('beg', 0.2, [1.1, -Math.PI / 8, true]));
-  upMotion.addKeyFrame(new Keyframe('mid', 0.4, [1.1, -Math.PI / 8, true]));
+  upMotion.addKeyFrame(new Keyframe('beg', 0.2, [1.1, -theta, true]));
+  upMotion.addKeyFrame(new Keyframe('mid', 0.4, [1.1, -theta, true]));
   upMotion.addKeyFrame(new Keyframe('end', 0.6, [1.1, 0, false]));
 
   downMotion.addKeyFrame(new Keyframe('beg', 0.0, [-1.1, 0, true]));
-  downMotion.addKeyFrame(new Keyframe('beg', 0.2, [-1.1, Math.PI / 8, true]));
-  downMotion.addKeyFrame(new Keyframe('mid', 0.4, [-1.1, Math.PI / 8, true]));
+  downMotion.addKeyFrame(new Keyframe('beg', 0.2, [-1.1, theta, true]));
+  downMotion.addKeyFrame(new Keyframe('mid', 0.4, [-1.1, theta, true]));
   downMotion.addKeyFrame(new Keyframe('end', 0.6, [-1.1, 0, false]));
 
   frontMotion.addKeyFrame(new Keyframe('beg', 0.0, [1.1, 0, true]));
-  frontMotion.addKeyFrame(new Keyframe('beg', 0.2, [1.1, -Math.PI / 8, true]));
-  frontMotion.addKeyFrame(new Keyframe('mid', 0.4, [1.1, -Math.PI / 8, true]));
+  frontMotion.addKeyFrame(new Keyframe('beg', 0.2, [1.1, -theta, true]));
+  frontMotion.addKeyFrame(new Keyframe('mid', 0.4, [1.1, -theta, true]));
   frontMotion.addKeyFrame(new Keyframe('end', 0.6, [1.1, 0, false]));
 
   backMotion.addKeyFrame(new Keyframe('beg', 0.0, [-1.1, 0, true]));
-  backMotion.addKeyFrame(new Keyframe('beg', 0.2, [-1.1, Math.PI / 8, true]));
-  backMotion.addKeyFrame(new Keyframe('mid', 0.4, [-1.1, Math.PI / 8, true]));
+  backMotion.addKeyFrame(new Keyframe('beg', 0.2, [-1.1, theta, true]));
+  backMotion.addKeyFrame(new Keyframe('mid', 0.4, [-1.1, theta, true]));
   backMotion.addKeyFrame(new Keyframe('end', 0.6, [-1.1, 0, false]));
 }
 
@@ -234,6 +242,12 @@ function onDocumentKeyDown(event) {
       if (!animUp && !animDown && !animRight && !animLeft && !animMid) animFront = true;
     } else if (keyCode == "B".charCodeAt()) {    // rotate back counterclockwise wrt z
       if (!animUp && !animDown && !animRight && !animLeft && !animMid) animBack = true;
+    } else if (keyCode == "1".charCodeAt()) {
+      reverse = false;
+      initMotions();
+    } else if (keyCode == "2".charCodeAt()) {
+      reverse = true;
+      initMotions();
     }
 };
 
@@ -323,7 +337,7 @@ function rotateZFace(zpos, rad) {
 // UPDATE CALLBACK
 ///////////////////////////////////////////////////////////////////////////////////////
 
-function update() {
+async function update() {
   var dt=0.1;
   if (animRight) rightMotion.timestep(dt);
   else if (animLeft) leftMotion.timestep(dt);
@@ -332,9 +346,9 @@ function update() {
   else if (animDown) downMotion.timestep(dt);
   else if (animFront) frontMotion.timestep(dt);
   else if (animBack) backMotion.timestep(dt);
-
+  
   requestAnimationFrame(update);      // requests the next update call;  this creates a loop
   renderer.render(scene, camera);
 }
-
+initMotions();
 update();
