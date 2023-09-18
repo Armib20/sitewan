@@ -157,6 +157,7 @@ function generateMaterial(x, y, z) {
   return cubeMaterialArray;
 }
 
+// CREATE CUBE USING BOTH 3D AND 1D ARRAYS
 var cubesArray3D = [];
 for (x = -1.1; x <= 1.1; x += 1.1) {
   var why = [];
@@ -180,31 +181,6 @@ for (x = 0; x < 3; x++) {
     }
   }
 }
-
-/////////////////////////////////////	
-// MATERIAL CHANGING ONCLICK
-/////////////////////////////////////	
-
-/* var raycaster = new THREE.Raycaster();
-var mouse = new THREE.Vector2();
-function onMouseClick(event) {
-  mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-  mouse.y = -( event.clientY / window.innerHeight ) * 2 + 1;
-  // update the picking ray with the camera and pointer position
-	raycaster.setFromCamera( mouse, camera );
-	// calculate objects intersecting the picking ray
-  const intersects = raycaster.intersectObjects( cubesArray1D );
-  if (intersects.length > 0) {
-    if (intersects[0].object.material == normalMaterial) {
-      intersects[0].object.material = generateMaterial(round(intersects[0].point.x),
-                                                      round(intersects[0].point.y),
-                                                      round(intersects[0].point.z));
-    } else {
-      intersects[0].object.material = normalMaterial;
-    }
-  }
-}
-window.addEventListener( 'click', onMouseClick ); */
 
 // special rounding helper function, rounds value to -1.1, 0, 1.1
 function round(v) {
@@ -251,6 +227,7 @@ function onDocumentKeyDown(event) {
     }
 };
 
+// Face rotations
 function rotateRFace(avars) {
   animRight = avars[2];
   rotateXFace(avars[0], avars[1]);
@@ -284,11 +261,12 @@ function rotateBFace(avars) {
 function rotateXFace(xpos, rad) {
   var M = new THREE.Matrix4();
   M.makeRotationX(rad);
+  var cubePos = new THREE.Vector3();
   // perform rotation
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
       for (let z = 0; z < 3; z++) {
-        if (round(cubesArray3D[x][y][z].getWorldPosition().x) == xpos) {
+        if (round(cubesArray3D[x][y][z].getWorldPosition(cubePos).x) == xpos) {
           cubesArray3D[x][y][z].matrixAutoUpdate = false;
           cubesArray3D[x][y][z].matrix.premultiply(M);
           cubesArray3D[x][y][z].updateMatrixWorld();
@@ -301,11 +279,12 @@ function rotateXFace(xpos, rad) {
 function rotateYFace(ypos, rad) {
   var M = new THREE.Matrix4();
   M.makeRotationY(rad);
+  var cubePos = new THREE.Vector3();
   // perform rotation
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
       for (let z = 0; z < 3; z++) {
-        if (round(cubesArray3D[x][y][z].getWorldPosition().y) == ypos) {
+        if (round(cubesArray3D[x][y][z].getWorldPosition(cubePos).y) == ypos) {
           cubesArray3D[x][y][z].matrixAutoUpdate = false;
           cubesArray3D[x][y][z].matrix.premultiply(M);
           cubesArray3D[x][y][z].updateMatrixWorld();
@@ -314,15 +293,16 @@ function rotateYFace(ypos, rad) {
     }
   }
 }
-// helper function for rotating y faces (U, D)
+// helper function for rotating z faces (F, B)
 function rotateZFace(zpos, rad) {
   var M = new THREE.Matrix4();
   M.makeRotationZ(rad);
+  var cubePos = new THREE.Vector3();
   // perform rotation
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
       for (let z = 0; z < 3; z++) {
-        if (round(cubesArray3D[x][y][z].getWorldPosition().z) == zpos) {
+        if (round(cubesArray3D[x][y][z].getWorldPosition(cubePos).z) == zpos) {
           cubesArray3D[x][y][z].matrixAutoUpdate = false;
           cubesArray3D[x][y][z].matrix.premultiply(M);
           cubesArray3D[x][y][z].updateMatrixWorld();
@@ -336,6 +316,30 @@ function rotateZFace(zpos, rad) {
 ///////////////////////////////////////////////////////////////////////////////////////
 // UPDATE CALLBACK
 ///////////////////////////////////////////////////////////////////////////////////////
+function updateMove(move) {
+  console.log("here");
+  if (move == "R") {           // rotate right clockwise wrt x
+    if (!animUp && !animDown && !animFront && !animBack) animRight = true;
+  } else if (move == "L") {    // rotate left counterclockwise wrt x
+    if (!animUp && !animDown && !animFront && !animBack) animLeft = true;
+  } else if (move == "M") {    // rotate middle clockwise wrt x
+    if (!animUp && !animDown && !animFront && !animBack) animMid = true;
+  } else if (move == "U") {    // rotate top clockwise wrt y
+    if (!animRight && !animLeft && !animMid && !animFront && !animBack) animUp = true;
+  } else if (move == "D") {    // rotate bottom counterclockwise wrt y
+    if (!animRight && !animLeft && !animMid && !animFront && !animBack) animDown = true;
+  } else if (move == "F") {    // rotate front clockwise wrt z
+    if (!animUp && !animDown && !animRight && !animLeft && !animMid) animFront = true;
+  } else if (move == "B") {    // rotate back counterclockwise wrt z
+    if (!animUp && !animDown && !animRight && !animLeft && !animMid) animBack = true;
+  } else if (move == "1") {
+    reverse = false;
+    initMotions();
+  } else if (move == "2") {
+    reverse = true;
+    initMotions();
+  }
+}
 
 async function update() {
   var dt=0.1;
