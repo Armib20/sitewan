@@ -142,18 +142,20 @@ function createCube(x, y, z) {
 function generateMaterial(x, y, z) {
   if (x == 0 && y == 0 && z == 0) {return blackMaterial;} // hidden piece
   var cubeMaterialArray = [];   // order to add materials: x+,x-,y+,y-,z+,z-
-  cubeMaterialArray.push( blueMaterial );
-  cubeMaterialArray.push( greenMaterial );
-  cubeMaterialArray.push( whiteMaterial );
-  cubeMaterialArray.push( yellowMaterial );
-  cubeMaterialArray.push( redMaterial );
-  cubeMaterialArray.push( orangeMaterial );
-  if (y == 0 || y == 1.1) {cubeMaterialArray[3] = blackMaterial;} // bottom face black
-  if (y == 0 || y == -1.1) {cubeMaterialArray[2] = blackMaterial;} // top face black
-  if (x == 0 || x == 1.1) {cubeMaterialArray[1] = blackMaterial;} // left face black
+  
   if (x == 0 || x == -1.1) {cubeMaterialArray[0] = blackMaterial;} // right face black
-  if (z == 0 || z == 1.1) {cubeMaterialArray[5] = blackMaterial;} // back face black
+  else cubeMaterialArray.push( blueMaterial );
+  if (x == 0 || x == 1.1) {cubeMaterialArray[1] = blackMaterial;} // left face black
+  else cubeMaterialArray.push( greenMaterial );
+  if (y == 0 || y == -1.1) {cubeMaterialArray[2] = blackMaterial;} // top face black
+  else cubeMaterialArray.push( whiteMaterial );
+  if (y == 0 || y == 1.1) {cubeMaterialArray[3] = blackMaterial;} // bottom face black
+  else cubeMaterialArray.push( yellowMaterial );
   if (z == 0 || z == -1.1) {cubeMaterialArray[4] = blackMaterial;} // front face black
+  else cubeMaterialArray.push( redMaterial );
+  if (z == 0 || z == 1.1) {cubeMaterialArray[5] = blackMaterial;} // back face black
+  else cubeMaterialArray.push( orangeMaterial );
+  
   return cubeMaterialArray;
 }
 
