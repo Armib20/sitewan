@@ -317,7 +317,7 @@ function rotateZFace(zpos, rad) {
 // UPDATE CALLBACK
 ///////////////////////////////////////////////////////////////////////////////////////
 function updateMove(move) {
-  console.log("here");
+  c += 1;
   if (move == "R") {           // rotate right clockwise wrt x
     if (!animUp && !animDown && !animFront && !animBack) animRight = true;
   } else if (move == "L") {    // rotate left counterclockwise wrt x
