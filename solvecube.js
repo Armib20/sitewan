@@ -1,6 +1,9 @@
 function animateSolution() {
     document.getElementById("solve-button").disabled = true;
     const solutionDisplay = document.getElementById("solution-display");
+    // clear the solution display
+    solutionDisplay.textContent = "";
+    setAutoSolve(true); // tell renderer to use autosolve mode, so skip displaying moves in action display
     solution = ['D2', "R'", "D'", 'F2', 'B', 'D', 'R2', 'D2', "R'", 'F2', "D'", 'F2', "U'", 'B2', 'L2', 'U2', 'D', 'R2', 'U'];
     sol = ['D', 'D', '2', 'R', '1', '2', 'D', '1', 'F', 'F', 'B', 'D', 'R', 'R', 'D', 'D', '2', 'R', '1', 'F', 'F', '2', 'D', '1', 'F', 'F', '2', 'U', '1', 'B', 'B', 'L', 'L', 'U', 'U', 'D', 'R', 'R', 'U'];
     let index = 0;
@@ -25,11 +28,12 @@ function animateSolution() {
                 setTimeout(nextMove, 500);
             }
             index++;
-        } else {
-            document.getElementById("solve-button").disabled = false;
         }
     }
-    nextMove();   
+    nextMove();
+    // after animation is done reset mode to default and re-enable the solve button
+    setAutoSolve(false);
+    document.getElementById("solve-button").disabled = false;
 }
 
 function viewPos() {
