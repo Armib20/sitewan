@@ -10,16 +10,35 @@ canvas {
     height: 100%
 }
 #info-container {
-    position: absolute;
-    z-index: 100;
-    width: 200px;
-    height: 150px;
+    position: fixed;
+    top: 5%;
+    left: 5%;
+    width: auto;
     margin: 5 5;
     padding: 20px;
 }
+#direction-container {
+    position: fixed;
+    top: 5%;
+    right: 5%;
+    width: auto;
+    margin: 5 5;
+    padding: 20px;
+}
+#action-display {
+    position: fixed;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    padding: 10px;
+    text-align: center;
+    font-size: 30px;
+    width: auto;
+}
 #solution-display {
     position: fixed;
-    bottom: 0;
+    bottom: 15%;
     left: 50%;
     transform: translateX(-50%);
     color: white;

@@ -102,6 +102,14 @@ function initMotions() {
 }
 
 /////////////////////////////////////	
+// TODO: Define different modes
+/////////////////////////////////////
+autoSolveMode = false;
+function setAutoSolve(status) {
+  autoSolveMode = status;
+}
+
+/////////////////////////////////////	
 // ADD LIGHTS  and define a simple material that uses lighting
 /////////////////////////////////////	
 
@@ -111,7 +119,7 @@ scene.add(light);
 ambientLight = new THREE.AmbientLight(0x606060);
 scene.add(ambientLight);
 
-const axesHelper = new THREE.AxesHelper( 5 );
+const axesHelper = new THREE.AxesHelper( 4 );
 scene.add( axesHelper );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -205,21 +213,22 @@ function round(v) {
 document.addEventListener("keydown", onDocumentKeyDown, false);
 function onDocumentKeyDown(event) {
     var keyCode = event.which;
+    var move = "";
     // rotations in orientation red front white up
     if (keyCode == "R".charCodeAt()) {           // rotate right clockwise wrt x
-      if (!animUp && !animDown && !animFront && !animBack) animRight = true;
+      if (!animUp && !animDown && !animFront && !animBack) animRight = true; move = "R";
     } else if (keyCode == "L".charCodeAt()) {    // rotate left counterclockwise wrt x
-      if (!animUp && !animDown && !animFront && !animBack) animLeft = true;
+      if (!animUp && !animDown && !animFront && !animBack) animLeft = true; move = "L";
     } else if (keyCode == "M".charCodeAt()) {    // rotate middle clockwise wrt x
-      if (!animUp && !animDown && !animFront && !animBack) animMid = true;
+      if (!animUp && !animDown && !animFront && !animBack) animMid = true; move = "M";
     } else if (keyCode == "U".charCodeAt()) {    // rotate top clockwise wrt y
-      if (!animRight && !animLeft && !animMid && !animFront && !animBack) animUp = true;
+      if (!animRight && !animLeft && !animMid && !animFront && !animBack) animUp = true; move = "U";
     } else if (keyCode == "D".charCodeAt()) {    // rotate bottom counterclockwise wrt y
-      if (!animRight && !animLeft && !animMid && !animFront && !animBack) animDown = true;
+      if (!animRight && !animLeft && !animMid && !animFront && !animBack) animDown = true; move = "D";
     } else if (keyCode == "F".charCodeAt()) {    // rotate front clockwise wrt z
-      if (!animUp && !animDown && !animRight && !animLeft && !animMid) animFront = true;
+      if (!animUp && !animDown && !animRight && !animLeft && !animMid) animFront = true; move = "F";
     } else if (keyCode == "B".charCodeAt()) {    // rotate back counterclockwise wrt z
-      if (!animUp && !animDown && !animRight && !animLeft && !animMid) animBack = true;
+      if (!animUp && !animDown && !animRight && !animLeft && !animMid) animBack = true; move = "B";
     } else if (keyCode == "1".charCodeAt()) {
       reverse = false;
       initMotions();
@@ -227,6 +236,8 @@ function onDocumentKeyDown(event) {
       reverse = true;
       initMotions();
     }
+
+    displayAction(reverse, move);
 };
 
 // Face rotations
@@ -322,17 +333,17 @@ function updateMove(move) {
   c += 1;
   if (move == "R") {           // rotate right clockwise wrt x
     if (!animUp && !animDown && !animFront && !animBack) animRight = true;
-  } else if (move == "L") {    // rotate left counterclockwise wrt x
+  } else if (move == "L") {    // rotate left clockwise wrt -x / counterclockwise wrt x
     if (!animUp && !animDown && !animFront && !animBack) animLeft = true;
   } else if (move == "M") {    // rotate middle clockwise wrt x
     if (!animUp && !animDown && !animFront && !animBack) animMid = true;
   } else if (move == "U") {    // rotate top clockwise wrt y
     if (!animRight && !animLeft && !animMid && !animFront && !animBack) animUp = true;
-  } else if (move == "D") {    // rotate bottom counterclockwise wrt y
+  } else if (move == "D") {    // rotate bottom clockwise wrt -y / counterclockwise wrt y
     if (!animRight && !animLeft && !animMid && !animFront && !animBack) animDown = true;
   } else if (move == "F") {    // rotate front clockwise wrt z
     if (!animUp && !animDown && !animRight && !animLeft && !animMid) animFront = true;
-  } else if (move == "B") {    // rotate back counterclockwise wrt z
+  } else if (move == "B") {    // rotate back clockwise wrt -z / counterclockwise wrt z
     if (!animUp && !animDown && !animRight && !animLeft && !animMid) animBack = true;
   } else if (move == "1") {
     reverse = false;
