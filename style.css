@@ -46,17 +46,13 @@ canvas {
     text-align: center;
     width: auto;
 }
-button {
-    border-radius: 5px;
-    background-color: rgb(188, 219, 129);
+#solve-button {
+    background-color: rgb(172, 220, 84);
     color: black;
-    padding: 5px 15px;
-    font-size: 16px;
-    cursor: pointer; 
 }
-button:hover {
+#solve-button:hover {
     background: #bde0cd;
 }
-button:disabled {
+#solve-button:disabled {
     background: grey;
 }
