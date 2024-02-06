@@ -101,6 +101,15 @@ function initMotions() {
   backMotion.addKeyFrame(new Keyframe('end', 0.6, [-1.1, 0, false]));
 }
 
+// Helper function to toggle reverse and update motions
+// Takes a boolean ifReverse and updates value of reverse variable
+// If param is null, toggles to opposite of current state
+function setReverse(ifReverse = null) {
+  reverse = ifReverse === null ? !reverse : ifReverse;
+  initMotions();
+  toggleShowDirection(reverse);
+}
+
 /////////////////////////////////////	
 // TODO: Define different modes
 /////////////////////////////////////
@@ -209,35 +218,66 @@ function round(v) {
 ///////////////////////////////////////////////////////////////////////////////////////
 // LISTEN TO KEYBOARD
 ///////////////////////////////////////////////////////////////////////////////////////
+const keyActions = {
+  82: { // "R".charCodeAt()
+    condition: () => !animUp && !animDown && !animFront && !animBack,
+    action: () => animRight = true, // rotate right clockwise wrt x
+    move: "R"
+  },
+  76: { // "L".charCodeAt()
+    condition: () => !animUp && !animDown && !animFront && !animBack,
+    action: () => animLeft = true, // rotate left counterclockwise wrt x
+    move: "L"
+  },
+  77: { // "M".charCodeAt()
+    condition: () => !animUp && !animDown && !animFront && !animBack,
+    action: () => animMid = true, // rotate middle clockwise wrt x
+    move: "M"
+  },
+  85: { // "U".charCodeAt()
+    condition: () => !animRight && !animLeft && !animMid && !animFront && !animBack,
+    action: () => animUp = true, // rotate top clockwise wrt y
+    move: "U"
+  },
+  68: { // "D".charCodeAt()
+    condition: () => !animRight && !animLeft && !animMid && !animFront && !animBack,
+    action: () => animDown = true, // rotate bottom counterclockwise wrt y
+    move: "D"
+  },
+  70: { // "F".charCodeAt()
+    condition: () => !animUp && !animDown && !animRight && !animLeft && !animMid,
+    action: () => animFront = true, // rotate front clockwise wrt z
+    move: "F"
+  },
+  66: { // "B".charCodeAt()
+    condition: () => !animUp && !animDown && !animRight && !animLeft && !animMid,
+    action: () => animBack = true, // rotate back counterclockwise wrt z
+    move: "B"
+  },
+  49: { // "1".charCodeAt()
+    action: () => setReverse(false),
+  },
+  50: { // "2".charCodeAt()
+    action: () => setReverse(true),
+  },
+};
 
 document.addEventListener("keydown", onDocumentKeyDown, false);
 function onDocumentKeyDown(event) {
-    var keyCode = event.which;
-    var move = "";
-    // rotations in orientation red front white up
-    if (keyCode == "R".charCodeAt()) {           // rotate right clockwise wrt x
-      if (!animUp && !animDown && !animFront && !animBack) animRight = true; move = "R";
-    } else if (keyCode == "L".charCodeAt()) {    // rotate left counterclockwise wrt x
-      if (!animUp && !animDown && !animFront && !animBack) animLeft = true; move = "L";
-    } else if (keyCode == "M".charCodeAt()) {    // rotate middle clockwise wrt x
-      if (!animUp && !animDown && !animFront && !animBack) animMid = true; move = "M";
-    } else if (keyCode == "U".charCodeAt()) {    // rotate top clockwise wrt y
-      if (!animRight && !animLeft && !animMid && !animFront && !animBack) animUp = true; move = "U";
-    } else if (keyCode == "D".charCodeAt()) {    // rotate bottom counterclockwise wrt y
-      if (!animRight && !animLeft && !animMid && !animFront && !animBack) animDown = true; move = "D";
-    } else if (keyCode == "F".charCodeAt()) {    // rotate front clockwise wrt z
-      if (!animUp && !animDown && !animRight && !animLeft && !animMid) animFront = true; move = "F";
-    } else if (keyCode == "B".charCodeAt()) {    // rotate back counterclockwise wrt z
-      if (!animUp && !animDown && !animRight && !animLeft && !animMid) animBack = true; move = "B";
-    } else if (keyCode == "1".charCodeAt()) {
-      reverse = false;
-      initMotions();
-    } else if (keyCode == "2".charCodeAt()) {
-      reverse = true;
-      initMotions();
+  var keyCode = event.which;
+  if (event.ctrlKey && keyCode === 90) { // ctrl+z
+    undoLastMove();
+  }
+  if (keyActions[keyCode]) {
+    const { condition, action, move } = keyActions[keyCode];
+    if (!condition || condition()) { // if condition is not defined (i.e. for direction changes) or is true
+        action();
     }
-
-    displayAction(reverse, move);
+    if (move) { // helps exclude non rotation moves from being displayed or saved
+      displayAction(reverse, move); // TODO: make sure undo disables this function
+      saveAction(reverse, move);
+    }
+  }
 };
 
 // Face rotations
@@ -329,29 +369,21 @@ function rotateZFace(zpos, rad) {
 ///////////////////////////////////////////////////////////////////////////////////////
 // UPDATE CALLBACK
 ///////////////////////////////////////////////////////////////////////////////////////
+
+// Called by the autosolver / undo/redo. 
+// Takes in move (string) in Rubik's notation, both forward and reverse e.g. R, R'
 function updateMove(move) {
-  c += 1;
-  if (move == "R") {           // rotate right clockwise wrt x
-    if (!animUp && !animDown && !animFront && !animBack) animRight = true;
-  } else if (move == "L") {    // rotate left clockwise wrt -x / counterclockwise wrt x
-    if (!animUp && !animDown && !animFront && !animBack) animLeft = true;
-  } else if (move == "M") {    // rotate middle clockwise wrt x
-    if (!animUp && !animDown && !animFront && !animBack) animMid = true;
-  } else if (move == "U") {    // rotate top clockwise wrt y
-    if (!animRight && !animLeft && !animMid && !animFront && !animBack) animUp = true;
-  } else if (move == "D") {    // rotate bottom clockwise wrt -y / counterclockwise wrt y
-    if (!animRight && !animLeft && !animMid && !animFront && !animBack) animDown = true;
-  } else if (move == "F") {    // rotate front clockwise wrt z
-    if (!animUp && !animDown && !animRight && !animLeft && !animMid) animFront = true;
-  } else if (move == "B") {    // rotate back clockwise wrt -z / counterclockwise wrt z
-    if (!animUp && !animDown && !animRight && !animLeft && !animMid) animBack = true;
-  } else if (move == "1") {
-    reverse = false;
-    initMotions();
-  } else if (move == "2") {
-    reverse = true;
-    initMotions();
-  }
+  // if move contains apostrophe, reverse direction
+  if (move.charAt(1) === "'") setReverse(true);
+  else setReverse(false);
+
+  keyCode = move.charAt(0).charCodeAt()
+  if (keyActions[keyCode]) {
+    const { condition, action } = keyActions[keyCode];
+    if (!condition || condition()) {
+        action();
+    }
+  } else console.log("Invalid move: " + move);
 }
 
 async function update() {
