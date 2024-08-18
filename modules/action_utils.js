@@ -42,6 +42,8 @@ export function saveAction(reverse, keyPressed) {
         }
         let historyString = sessionStorage.getItem("keyEventHistory");
         let history = historyString ? JSON.parse(historyString) : [];
+        if (history.length > 10) // set a limit to the number of saved moves
+            history.shift() // get rid of oldest move
         history.push(move)
         sessionStorage.setItem("keyEventHistory", JSON.stringify(history));
     }
@@ -53,32 +55,17 @@ function undoLastMove() {
         console.log("Manual moves are disabled during autosolve mode.")
         return;
     }
-    const reverseMap = {
-        "R": "R'",
-        "R'": "R",
-        "L": "L'",
-        "L'": "L",
-        "M": "M'",
-        "M'": "M",
-        "U": "U'",
-        "U'": "U",
-        "D": "D'",
-        "D'": "D",
-        "F": "F'",
-        "F'": "F",
-        "B": "B'",
-        "B'": "B",
-    };
+    function reverseMove(move) {
+        return move.endsWith("'") ? move.slice(0, -1) : move + "'";
+    }
     let historyString = sessionStorage.getItem("keyEventHistory");
     if (!historyString) return; // nothing to undo
-
     let history = JSON.parse(historyString);
     if (history.length > 0) {
         var lastMove = history.pop();
-        updateMove(reverseMap[lastMove]);
+        updateMove(reverseMove(lastMove));
         sessionStorage.setItem("keyEventHistory", JSON.stringify(history));
     }
-    console.log(sessionStorage.getItem("keyEventHistory"));
 }
 window.undoLastMove = undoLastMove;
 
