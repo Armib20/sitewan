@@ -1,11 +1,18 @@
+import modes from './modes.js';
+import { updateMove } from './action_utils.js'; 
+
 function animateSolution() {
+    modes.autoSolveMode = true; // use autosolve mode: disable manual moves --> don't display moves in action display 
+    // disable all of buttons that can affect moves
     document.getElementById("solve-button").disabled = true;
+    document.getElementById("undo-button").disabled = true;
+    document.getElementById("clockwise-icon").disabled = true;
+    document.getAnimations("counter-clockwise-icon").disabled = true;
     const solutionDisplay = document.getElementById("solution-display");
     // clear the solution display
     solutionDisplay.textContent = "";
-    setAutoSolve(true); // tell renderer to use autosolve mode, so skip displaying moves in action display
-    solution = ['D2', "R'", "D'", 'F2', 'B', 'D', 'R2', 'D2', "R'", 'F2', "D'", 'F2', "U'", 'B2', 'L2', 'U2', 'D', 'R2', 'U'];
-    sol = ['D', 'D', '2', 'R', '1', '2', 'D', '1', 'F', 'F', 'B', 'D', 'R', 'R', 'D', 'D', '2', 'R', '1', 'F', 'F', '2', 'D', '1', 'F', 'F', '2', 'U', '1', 'B', 'B', 'L', 'L', 'U', 'U', 'D', 'R', 'R', 'U'];
+    const solution = ['D2', "R'", "D'", 'F2', 'B', 'D', 'R2', 'D2', "R'", 'F2', "D'", 'F2', "U'", 'B2', 'L2', 'U2', 'D', 'R2', 'U'];
+    const sol = ['D', 'D', '2', 'R', '1', '2', 'D', '1', 'F', 'F', 'B', 'D', 'R', 'R', 'D', 'D', '2', 'R', '1', 'F', 'F', '2', 'D', '1', 'F', 'F', '2', 'U', '1', 'B', 'B', 'L', 'L', 'U', 'U', 'D', 'R', 'R', 'U'];
     let index = 0;
     let mi = 0; // the index in the moves in the solution, not the transformed one
     function nextMove() {
@@ -28,15 +35,20 @@ function animateSolution() {
                 setTimeout(nextMove, 500);
             }
             index++;
+        } else {
+            // after animation is done, reset mode to default (not autosolve) and re-enable any buttons for manual moves
+            modes.autoSolveMode = false;
+            document.getElementById("solve-button").disabled = false;
+            document.getElementById("undo-button").disabled = false;
+            document.getElementById("clockwise-icon").disabled = false;
+            document.getAnimations("counter-clockwise-icon").disabled = false;
         }
     }
     nextMove();
-    // after animation is done reset mode to default and re-enable the solve button
-    setAutoSolve(false);
-    document.getElementById("solve-button").disabled = false;
 }
+window.animateSolution = animateSolution;
 
-function viewPos() {
+export function viewPos() {
 //    for (let i = 18; i < 27; i++) {
 //        console.log(cubesArray1D[i].userData.materials[0].color.getHexString());
 //    }
@@ -53,7 +65,7 @@ function viewPos() {
 }
 
 // returns the cube definition string for the current state (see https://pypi.org/project/kociemba/)
-function getDefinitionString() {
+export function getDefinitionString() {
     var listres = [];
 
 }
@@ -63,11 +75,11 @@ function getDefinitionString() {
 // val: indices[] list of ints
 var coordIndexMap = {};
 var numZeros;
-for (var x = -1.1; x <= 1.1; x += 1.1) {
-    for (var y = -1.1; y <= 1.1; y += 1.1) {
-        for (var z = -1.1; z <= 1.1; z += 1.1) {
+for (let x = -1.1; x <= 1.1; x += 1.1) {
+    for (let y = -1.1; y <= 1.1; y += 1.1) {
+        for (let z = -1.1; z <= 1.1; z += 1.1) {
             // list of faces (multipliers)
-            facesPos = [];
+            let facesPos = [];
             // e.g. x === -1.1 --> L --> index 4 in faces list (positions 4*9:5*9)
             if (x === -1.1) facesPos.push(4);
             if (y === -1.1) facesPos.push(3);
@@ -82,7 +94,7 @@ for (var x = -1.1; x <= 1.1; x += 1.1) {
             if (y === 0) numZeros++;
             if (z === 0) numZeros++;
 
-            indices = [];
+            let indices = [];
             if (numZeros === 2) { // center
                 indices.push(facesPos[0]*9+5);
             } else if (numZeros === 1) { // edge
