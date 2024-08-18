@@ -53,6 +53,10 @@ canvas {
 #solve-button:hover {
     background: #bde0cd;
 }
-#solve-button:disabled {
-    background: grey;
+#solve-button:disabled,
+#undo-button:disabled,
+#clockwise-icon:disabled,
+#counter-clockwise-icon:disabled {
+    background: rgb(176, 176, 176);
+    border-color: black;
 }

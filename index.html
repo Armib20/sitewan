@@ -22,16 +22,16 @@
       <button class="btn btn-info" id="undo-button" onclick="undoLastMove()" data-toggle="tooltip" data-placement="right" title="Undo last move">
         <img src="assets/undo_icon.png" alt="Undo" width="16px">
       </button>
-      <button class="btn btn-success" id="solve-button" onclick="animateSolution()">Solve</button>
-      <button class="btn btn-info" id="reset-button" onclick="location.reload(); sessionStorage.clear();">Reset</button>
+      <button class="btn btn-success" id="solve-button" onclick="animateSolution()" data-toggle="tooltip" data-placement="right" title="Solve the cube">Solve</button>
+      <button class="btn btn-info" id="reset-button" onclick="location.reload(); sessionStorage.clear();" data-toggle="tooltip" data-placement="right" title="Start over">Reset</button>
     </div>
     <div id="action-display"></div>
     <div id="solution-display"></div>
     <div id="direction-container">
-      <button id="clockwise-icon" style="display: block;" type="button" class="btn btn-outline-info" onclick="setReverse();">
+      <button id="clockwise-icon" style="display: block;" type="button" class="btn btn-info" onclick="setReverse();">
         <img src="assets/clockwise_icon.png" alt="Clockwise" data-toggle="tooltip" data-placement="right" title="Change to counter-clockwise" width="32px">
       </button>
-      <button id="counter-clockwise-icon" style="display: none;" type="button" class="btn btn-outline-info" onclick="setReverse();">
+      <button id="counter-clockwise-icon" style="display: none;" type="button" class="btn btn-info" onclick="setReverse();">
         <img src="assets/counter-clockwise_icon.png" alt="Counter-Clockwise" data-toggle="tooltip" data-placement="right" title="Change to clockwise" width="32px">
       </button>
     </div>
