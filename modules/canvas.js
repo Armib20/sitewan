@@ -67,3 +67,30 @@ async function update() {
 }
 
 update();
+
+
+////////////////////////////////
+// HANDLE MESSAGE DISPLAYS
+////////////////////////////////
+
+export function showAlert(strong_message, long_message) {
+  const alertDiv = document.createElement('div');
+  alertDiv.className = 'alert alert-warning fade show';
+  alertDiv.role = 'alert';
+  alertDiv.innerHTML = `
+        <strong>${strong_message}</strong> ${long_message}
+  `;
+  // Append the alert to the messages container
+  const messagesContainer = document.getElementById('messages-container');
+  messagesContainer.appendChild(alertDiv);
+
+  // Fade out after 100ms
+  setTimeout(() => {
+      alertDiv.classList.add('fade-out');
+  }, 100);
+
+  // Remove the alert from the DOM after the fade-out transition ends
+  alertDiv.addEventListener('transitionend', () => {
+      alertDiv.remove();
+  });
+}
