@@ -1,8 +1,8 @@
 import modes from './modes.js';
-import { updateMove } from './action_utils.js'; 
+import { makeAutoMove } from './action_utils.js'; 
 
 function animateSolution() {
-    modes.autoSolveMode = true; // use autosolve mode: disable manual moves --> don't display moves in action display 
+    modes.autoSolveMode = true; // use autosolve mode: disable manual moves --> don't display moves in action display
     // disable all of buttons that can affect moves
     document.getElementById("solve-button").disabled = true;
     document.getElementById("undo-button").disabled = true;
@@ -18,7 +18,7 @@ function animateSolution() {
     function nextMove() {
         if (index < sol.length) {
             const move = sol[index];
-            updateMove(move);
+            makeAutoMove(move);
             // since '1' and '2' indicate forward/reverse direction changes and not a face turn
             // do not require pause for those moves
             if (move === '1' || move === '2') {
