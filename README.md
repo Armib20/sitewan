@@ -10,9 +10,9 @@ A Rubik's Cube model built with in-browser rendering 3D graphics library Three.j
 - note: front face is always taken to be +z face (red)
 
 ## Backend
-Using FastAPI. Run with
+Using FastAPI. To run,
 ```
-uvicorn backend.main:app --reload
+python backend/main.py
 ```
 
 Global variable `cube_state` tracks the stickers for the faces of the cube in a 6x3x3 numpy array. The faces are the first axis, in the order (U, R, F, D, L, B). Each face is a 3x3 array labeled 1 through 9, representing the locations described [below](#highlight-finding-the-cube-definition-string).
