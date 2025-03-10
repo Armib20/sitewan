@@ -9,12 +9,57 @@ A Rubik's Cube model built with in-browser rendering 3D graphics library Three.j
 - 'ctrl + z' to undo the last move
 - note: front face is always taken to be +z face (red)
 
-## Run the backend
-```uvicorn backend.main:app --reload```
+## Backend
+Using FastAPI. Run with
+```
+uvicorn backend.main:app --reload
+```
+
+Global variable `cube_state` tracks the stickers for the faces of the cube in a 6x3x3 numpy array. The faces are the first axis, in the order (U, R, F, D, L, B). Each face is a 3x3 array labeled 1 through 9, representing the locations described [below](#highlight-finding-the-cube-definition-string).
+
+### API Endpoints:
+
+`POST /move`: Applies a move to the cube and returns the updated cube state as a string.
+
+Request body:
+```
+{
+   "move": "F" // Rotate front face
+}
+```
+Response
+```
+{
+   "move": "F",
+   "cube_string": "UUUUUULLLURRURRURRFFFFFFFFFRRRDDDDDDLLDLLDLLDBBBBBBBBB"
+}
+```
+
+`GET /solve`: Solves the current cube state using the Kociemba solver and returns the solution.
+
+Reponse:
+```
+{
+    "solutionString": "F' U' R2",
+    "parsedMoves": ["F'", "U'", ["R", "R"]]
+}
+```
+Errors:
+- **400 Bad Request**: If the cube state is invalid (the Kociema solver doesn't recognize it)
+- **500 Internal Server Error**: Something unexpected happens.
+
+`POST /reset_cube`: Resets the cube to the solved state.
+
+Response:
+```
+{}
+```
+
 
 
 ## Currently in the works:
-- cube solver
+- debugging cube solver
+- testing to find edge cases and handle errors gracefully
 - face rotation key bindings relative to orientation wrt camera
 
 
@@ -81,18 +126,4 @@ Instead, these are some ideas:
 - Use raytracing to cast rays that will intersect with rows of 3 cubes at a time to get the color information in the order they are added to the definition string *Raytracing will accurately get the cubes without needing to deal with their data representation, but creating rays and getting intersections can be slow and there is duplicate work done.*
 - Iterate over the list of cubes, get their world position which will map to 1 (center), 2 (edge) or 3 (corner) indices in the definition string. Based on the index, I know which face it represents and can retrieve the color for that face on the cube. Then the color code can be mapped to a character representing the face on which that color belongs.
 `{whiteHex:'U', blueHex:'R', redHex:'F', yellowHex:'D', greenHex:'L', orangeHex:'B'}`. *This requires some extra memory for storing mappings.*
-
-The third idea is what I implemented because it is most time efficient. Now I just need the mapping from world position to indices in the definition string.
-U=[0,9), R=[9,18), F=[18,27), D=[27,36), L[36,45), B=[45,54)
-x=1.1 R
-x=-1.1 L
-y=1.1 U
-y=-1.1 D
-
-- 0 zeros = corner
-- 1 zero = edge 
-- 2 zeros = center
-- 3 zeros --> ignore
-
-
-
+- (Implemented) Introduce a representation of the cube in the backend that updates with every rotation. This representation can be easily transformed into a string format recognized by the Kociemba solver. *The main challenge is ensuring that the animated cube on the frontend and the backend representation are synchronized at all times.* The `/move` API endpoint is called for every move, whether made by the user or the automatic solver. In a future refactoring, I plan to use this backend representation as a single source of truth so that the cube state and animation are updated atomically.
