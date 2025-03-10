@@ -11,6 +11,7 @@ async function handleSolve() {
     let data  = await getSolution();
     let solutionMoves = data.solutionString.split(" "); // using notation from the kociemba solver, which includes double moves like "F2"
     let parsedMoves = data.parsedMoves;
+    console.log(data);
 
     let i = 0;
     async function nextMove() {
