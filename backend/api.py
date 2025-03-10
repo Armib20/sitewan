@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException
 from kociemba import solve
-import backend.utils as utils
-import numpy as np
+import utils
 
 
 router = APIRouter()

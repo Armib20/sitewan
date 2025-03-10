@@ -33,25 +33,21 @@ def rotate_cube_face(cube_state: np.array, face_idx: int, clockwise=True):
 # Rotate F clockwise
 def rotate_front_clockwise(cube_state):
     rotate_cube_face(cube_state, 2, clockwise=True)
-    temp = cube_state[0][2, :].copy()  # *U7**U8**U9*
-    cube_state[0][2, :] = cube_state[4][:, 2][::-1]  # *L9**L6**L3* replaces U[2]
-    cube_state[4][:, 2] = cube_state[3][0, :]  # *D1**D2**D3* replaces *L3*,*L6,*L9*
-    cube_state[3][0, :] = cube_state[1][:, 0][
-        ::-1
-    ]  # *R7**R4**R1* replaces *D1**D2**D3*
-    cube_state[1][:, 0] = temp  # *U7**U8**U9* replaces *R1*,*R4*,*R7*
+    temp = cube_state[0][2, :].copy()  # U789
+    cube_state[0][2, :] = cube_state[4][:, 2][::-1]  # L963 -> U[2]
+    cube_state[4][:, 2] = cube_state[3][0, :]  # D123 -> L369
+    cube_state[3][0, :] = cube_state[1][:, 0][::-1]  # R741 -> D123
+    cube_state[1][:, 0] = temp  # U789 -> R147
 
 
 # Rotate F counterclockwise
 def rotate_front_counterclockwise(cube_state):
     rotate_cube_face(cube_state, 2, clockwise=False)
-    temp = cube_state[0][2, :].copy()  # *U7**U8**U9*
-    cube_state[0][2, :] = cube_state[1][:, 0]  # *R1*,*R4*,*R7* replaces U[2]
-    cube_state[1][:, 0] = cube_state[3][0, :][
-        ::-1
-    ]  # *D3**D2**D1* replaces *R1*,*R4*,*R7*
-    cube_state[3][0, :] = cube_state[4][:, 2]  # *L3*,*L6*,*L9* replaces *D1**D2**D3*
-    cube_state[4][:, 2] = temp[::-1]  # *U9**U8**U7* replaces *L3*,*L6*,*L9*
+    temp = cube_state[0][2, :].copy()  # U789
+    cube_state[0][2, :] = cube_state[1][:, 0]  # R147 -> U[2]
+    cube_state[1][:, 0] = cube_state[3][0, :][::-1]  # D321 -> R147
+    cube_state[3][0, :] = cube_state[4][:, 2]  # L369 -> D123
+    cube_state[4][:, 2] = temp[::-1]  # U987 -> L369
 
 
 # Rotate R clockwise
@@ -138,20 +134,20 @@ def rotate_down_clockwise(cube_state):
 def rotate_back_clockwise(cube_state):
     rotate_cube_face(cube_state, 5, clockwise=True)
     temp = cube_state[0][0, :][::-1].copy()  # U321
-    cube_state[0][0, :] = cube_state[1][:, 2]  # R369 replaces U123
-    cube_state[1][:, 2] = cube_state[3][2, :][::-1]  # D987 replaces R369
-    cube_state[3][2, :] = cube_state[4][:, 0]  # L147 replaces D789
-    cube_state[4][:, 0] = temp  # U321 replaces L147
+    cube_state[0][0, :] = cube_state[1][:, 2]  # R369 -> U123
+    cube_state[1][:, 2] = cube_state[3][2, :][::-1]  # D987 -> R369
+    cube_state[3][2, :] = cube_state[4][:, 0]  # L147 -> D789
+    cube_state[4][:, 0] = temp  # U321 -> L147
 
 
 # Rotate B counterclockwise
 def rotate_back_counterclockwise(cube_state):
     rotate_cube_face(cube_state, 5, clockwise=False)
-    temp = cube_state[0][0, :].copy()  # *U1**U2**U3*
-    cube_state[0][0, :] = cube_state[4][:, 0][::-1]  # *L7,*L4*,*L1* replaces U[0]
-    cube_state[4][:, 0] = cube_state[3][2, :]  # *D7**D8**D9* replaces *L1*,*L4*,*L7*
-    cube_state[3][2, :] = cube_state[1][:, 2][::-1]  # *R9*,*R6*,*R3* replaces D[2]
-    cube_state[1][:, 2] = temp  # U[0] replaces R369
+    temp = cube_state[0][0, :].copy()  # U123
+    cube_state[0][0, :] = cube_state[4][:, 0][::-1]  # L741 -> U[0]
+    cube_state[4][:, 0] = cube_state[3][2, :]  # D789 -> L147
+    cube_state[3][2, :] = cube_state[1][:, 2][::-1]  # R963 -> D[2]
+    cube_state[1][:, 2] = temp  # U[0] -> R369
 
 
 # orient whole cube on R counterclockwise
@@ -212,13 +208,14 @@ def update_cube_state(cube_state, move):
             x_down(cube_state)
         case _:
             raise ValueError("Invalid move", move)
-    print_cube_state(getColorString(cube_state.copy()))
+    print_cube_state(get_color_str(cube_state.copy()))
     return cube_state
 
 
 # eg. solution: "R' D2 R' U2 R F2 D B2 U' R F' U R2 D L2 D' B2 R2 B2 U' B2"
 # parse the output of the solver (solution string) and translates it into a list of cube moves
-# Each move is either a string (e.g., "R", "R'") or a list of two moves for double turns (e.g., "D2" → ["D", "D"])
+# Each move is either a string (e.g., "R", "R'") or a list of two moves
+# for double turns (e.g., "D2" → ["D", "D"])
 def parse_moves(solution):
     moves = []
     for m in solution.split():
@@ -230,7 +227,7 @@ def parse_moves(solution):
 
 
 # functions for debugging
-def getColorString(cube_state):
+def get_color_str(cube_state):
     map = {"U": "W", "R": "B", "F": "R", "D": "Y", "L": "G", "B": "O"}
     for (i, j, k), value in np.ndenumerate(cube_state):
         cube_state[i][j][k] = map[value]
