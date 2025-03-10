@@ -9,6 +9,9 @@ A Rubik's Cube model built with in-browser rendering 3D graphics library Three.j
 - 'ctrl + z' to undo the last move
 - note: front face is always taken to be +z face (red)
 
+## Run the backend
+```uvicorn backend.main:app --reload```
+
 
 ## Currently in the works:
 - cube solver
@@ -90,7 +93,6 @@ y=-1.1 D
 - 1 zero = edge 
 - 2 zeros = center
 - 3 zeros --> ignore
-
 
 
 

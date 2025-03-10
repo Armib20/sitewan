@@ -22,8 +22,8 @@
       <button class="btn btn-info" id="undo-button" onclick="undoLastMove()" data-toggle="tooltip" data-placement="right" title="Undo last move">
         <img src="assets/undo_icon.png" alt="Undo" width="16px">
       </button>
-      <button class="btn btn-success" id="solve-button" onclick="animateSolution()" data-toggle="tooltip" data-placement="right" title="Solve the cube">Solve</button>
-      <button class="btn btn-info" id="reset-button" onclick="location.reload(); sessionStorage.clear();" data-toggle="tooltip" data-placement="right" title="Start over">Reset</button>
+      <button class="btn btn-success" id="solve-button" onclick="handleSolve()" data-toggle="tooltip" data-placement="right" title="Solve the cube">Solve</button>
+      <button class="btn btn-info" id="reset-button" onclick="resetState()" data-toggle="tooltip" data-placement="right" title="Start over">Reset</button>
     </div>
     <div id="action-display"></div>
     <div id="solution-display"></div>
@@ -43,7 +43,6 @@
     <script src="js/OrbitControls.js"></script>
     <script src="js/KeyboardState.js"></script> <!-- By Jerome Etienne: http://jetienne.com/ -->
 
-    <script src="motion.js"></script>
     <script type="module" src="modules/main.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>

@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////
-// Keyframe and Motion classes (code taken from CPSC 314 A3)
+// Keyframe and Motion classes (adapted from CPSC 314 A3)
 ////////////////////////////////////////////////////////////
 
 class Keyframe {
@@ -27,10 +27,13 @@ class Motion {
     };
     timestep(dt) {                //  take a time-step;  loop to beginning if at end
         this.currTime += dt;
-        if (this.currTime > this.maxTime) 
+        if (this.currTime > this.maxTime) {
             this.currTime = 0;
+            return 1; // alert finished (reset)
+        }
         let avars = this.getAvars();
         this.updateMatrices(avars);
+        return 0; // alert stepped
     };
     getAvars() {                  //  compute interpolated values for the current time
         let i = 1;
@@ -50,4 +53,4 @@ class Motion {
     };
 }
 
-// export { Keyframe, Motion };
+export { Keyframe, Motion };
