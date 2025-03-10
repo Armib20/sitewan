@@ -1,4 +1,7 @@
-export let url = "http://127.0.0.1:8000";
+export let url =
+    window.location.hostname === "127.0.0.1"
+        ? "http://127.0.0.1:8080"  // local dev
+        : "https://api.irisxu.me";   // prod
 
 export async function postMove(move) {
     try {
@@ -11,7 +14,7 @@ export async function postMove(move) {
         });
 
         if (response.ok) {
-            const data = await response.json();
+            //const data = await response.json();
             //console.log("Move updated cube in backend:", data);
         } else {
             console.error("Failed to send move to backend.");
@@ -20,7 +23,6 @@ export async function postMove(move) {
         console.error("Error sending move to backend:", error);
     }
 }
-
 
 export async function getSolution() {
     try {

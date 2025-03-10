@@ -30,7 +30,7 @@ export async function undoLastMove() {
         try {
           const success = await makeAutoMove(oppMove, false);
           return success;
-        } catch (error) {
+        } catch {
           sessionStorage.setItem("keyEventHistory", JSON.stringify(history.push(lastMove))); // restore history
           return false;
         }

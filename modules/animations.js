@@ -1,6 +1,5 @@
 import { rotateXFace, rotateYFace, rotateZFace } from "./rubik.js";
 import { Keyframe, Motion } from "./motion.js"
-import { isReverseMode } from "./modes.js";
 
 
 export const Faces = Object.freeze({

@@ -102,7 +102,7 @@ export async function handleMove(move, saveSession) {
   const keyCode = move.charAt(0).charCodeAt();
   setReverse(move.charAt(1) === "'");
   if (keyActions[keyCode]) {
-      const { action, face: _ } = keyActions[keyCode];
+      const { action } = keyActions[keyCode];
       Promise.all([
         await action(),
         await saveMove(move, saveSession)
