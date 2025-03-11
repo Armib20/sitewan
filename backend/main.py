@@ -9,7 +9,7 @@ app = FastAPI()
 
 env = os.getenv("ENV", "development")
 if env == "production":
-    origins = ["https://name.me/rubik"]
+    origins = ["https://irisxu.me/rubik"]
 else:
     origins = ["http://127.0.0.1:5500"]
 
