@@ -1,7 +1,8 @@
 import { useMemo, useRef } from 'react';
 import { useSpring, a } from '@react-spring/three';
 import { Edges } from '@react-three/drei';
-import { Group, Vector3 } from 'three';
+import { Group, Vector3, type Object3D } from 'three';
+
 
 interface CubeletProps {
   id: string;
@@ -9,6 +10,7 @@ interface CubeletProps {
   onHover: (id: string | null) => void;
   isHovered: boolean;
   isBlocked: boolean;
+  onClick: () => void;
 }
 
 const COLORS = {
@@ -45,7 +47,7 @@ const generateMaterials = (x: number, y: number, z: number) => {
   return materials;
 };
 
-export const Cubelet: React.FC<CubeletProps> = ({ id, position, onHover, isHovered, isBlocked }) => {
+export const Cubelet: React.FC<CubeletProps> = ({ id, position, onHover, isHovered, isBlocked, onClick }) => {
   const groupRef = useRef<Group>(null!);
   const [x, y, z] = position;
 
@@ -57,15 +59,21 @@ export const Cubelet: React.FC<CubeletProps> = ({ id, position, onHover, isHover
 
   const materials = useMemo(() => generateMaterials(x, y, z), [x, y, z]);
 
-  const handlePointerOver = (e: React.PointerEvent<THREE.Object3D>) => {
+  const handlePointerOver = (e: React.PointerEvent<Object3D>) => {
     e.stopPropagation();
-    if (isBlocked) return;
+    if (isBlocked || isHovered) return;
     onHover(id);
   };
 
-  const handlePointerOut = (e: React.PointerEvent<THREE.Object3D>) => {
+  const handlePointerOut = (e: React.PointerEvent<Object3D>) => {
     e.stopPropagation();
     onHover(null);
+  };
+
+  const handleClick = (e: React.PointerEvent<Object3D>) => {
+    e.stopPropagation();
+    if (isBlocked) return;
+    onClick();
   };
 
   if (x === 0 && y === 0 && z === 0) {
@@ -80,6 +88,7 @@ export const Cubelet: React.FC<CubeletProps> = ({ id, position, onHover, isHover
       position={position}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
+      onClick={handleClick}
     >
       <a.group
         scale={scale as any}
@@ -91,9 +100,10 @@ export const Cubelet: React.FC<CubeletProps> = ({ id, position, onHover, isHover
             <meshBasicMaterial key={index} attach={`material-${index}`} color={material.color} />
           ))}
           <Edges>
-            <lineBasicMaterial color={0xffffff} linewidth={4} />
+            <lineBasicMaterial color={0xffffff} linewidth={8} />
           </Edges>
         </mesh>
+        
       </a.group>
     </group>
   );

@@ -2,6 +2,13 @@ import { useRef, useCallback, forwardRef, useImperativeHandle, useState } from '
 import { Group, Vector3 } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Cubelet } from './Cubelet';
+import type { PageData } from '@/data/pageData';
+import { pages } from '@/data/pageData';
+
+interface RubikCubeProps {
+  setActivePage: (page: PageData | null) => void;
+  setSelectedPage: (page: PageData | null) => void;
+}
 
 export interface RubikCubeRef {
   animateXFace: (xpos: number, direction: number) => Promise<void>;
@@ -21,17 +28,19 @@ interface AnimationState {
   resolve?: () => void;
 }
 
-export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
+export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePage, setSelectedPage }, ref) => {
   const ambientGroupRef = useRef<Group>(null); // For ambient rotation only
   const cubeGroupRef = useRef<Group>(null);
   const rotationGroupRef = useRef<Group>(null);
   const [animationState, setAnimationState] = useState<AnimationState | null>(null);
   const [hoveredCubelet, setHoveredCubelet] = useState<string | null>(null);
-  
+  const [hoveredPageIndex, setHoveredPageIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState<PageData | null>(null);
+
   // Ambient rotation and hover state
   const [ambientRotationSpeed] = useState(0.002);
   const [animationDuration] = useState(350);
-  
+
   // Helper function to round position values to -1.1, 0, or 1.1
   const round = useCallback((v: number) => {
     const distToZero = Math.abs(v);
@@ -133,7 +142,7 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
         resolve,
       });
     });
-  }, [animationState, attachToRotationGroup, animationDuration]);
+  }, [animationState, hoveredCubelet, attachToRotationGroup, animationDuration]);
 
   // Animate Y face rotation
   const animateYFace = useCallback((ypos: number, direction: number): Promise<void> => {
@@ -151,7 +160,7 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
         resolve,
       });
     });
-  }, [animationState, attachToRotationGroup, animationDuration]);
+  }, [animationState, hoveredCubelet, attachToRotationGroup, animationDuration]);
 
   // Animate Z face rotation
   const animateZFace = useCallback((zpos: number, direction: number): Promise<void> => {
@@ -169,7 +178,7 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
         resolve,
       });
     });
-  }, [animationState, attachToRotationGroup, animationDuration]);
+  }, [animationState, hoveredCubelet, attachToRotationGroup, animationDuration]);
 
   const resetCube = useCallback(() => {
     if (animationState) return; // Don't reset during animation
@@ -211,7 +220,24 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
     }
   }
 
+  const handleHover = useCallback((id: string | null) => {
+    setHoveredCubelet(id);
+    if (id) {
+      const page = pages[hoveredPageIndex];
+      setActivePage(page);
+      setCurrentPage(page);
+      setHoveredPageIndex((prevIndex) => (prevIndex + 1) % pages.length);
+    } else {
+      setActivePage(null);
+      setCurrentPage(null);
+    }
+  }, [setActivePage, hoveredPageIndex]);
 
+  const handleClick = () => {
+    if (currentPage) {
+      setSelectedPage(currentPage);
+    }
+  };
 
   return (
     <group ref={ambientGroupRef}>
@@ -219,13 +245,14 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
         {positions.map((position) => {
           const id = `${position[0]}-${position[1]}-${position[2]}`;
           return (
-            <Cubelet 
+            <Cubelet
               key={id}
               id={id}
               position={position}
-              onHover={setHoveredCubelet}
+              onHover={handleHover}
               isHovered={hoveredCubelet === id}
               isBlocked={!!animationState}
+              onClick={handleClick}
             />
           );
         })}
