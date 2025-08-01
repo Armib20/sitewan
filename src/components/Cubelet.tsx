@@ -1,95 +1,100 @@
-import { useRef } from 'react';
-import { Mesh } from 'three';
+import { useMemo, useRef } from 'react';
+import { useSpring, a } from '@react-spring/three';
 import { Edges } from '@react-three/drei';
+import { Group, Vector3 } from 'three';
 
 interface CubeletProps {
+  id: string;
   position: [number, number, number];
+  onHover: (id: string | null) => void;
+  isHovered: boolean;
+  isBlocked: boolean;
 }
 
-// Rubik's cube standard colors
 const COLORS = {
-  black: 0x000000,   // hidden faces
-  blue: 0x000000,    // right face
-  green: 0x000000,   // left face  
-  white: 0x000000,   // top face
-  yellow: 0x000000,  // bottom face
-  red: 0x000000,     // front face
-  orange: 0x000000,  // back face
+  black: 0x000000,
+  blue: 0x000000,
+  green: 0x000000,
+  white: 0x000000,
+  yellow: 0x000000,
+  red: 0x000000,
+  orange: 0x000000,
 };
 
 const generateMaterials = (x: number, y: number, z: number) => {
-  // Materials order: x+, x-, y+, y-, z+, z-
-  // Corresponding to: right, left, top, bottom, front, back
   const materials = [];
   
-  // Right face (x+)
-  if (x === 0 || x === -1.1) {
-    materials.push({ color: COLORS.black });
-  } else {
-    materials.push({ color: COLORS.blue });
-  }
+  if (x === 0 || x === -1.1) materials.push({ color: COLORS.black });
+  else materials.push({ color: COLORS.blue });
   
-  // Left face (x-)
-  if (x === 0 || x === 1.1) {
-    materials.push({ color: COLORS.black });
-  } else {
-    materials.push({ color: COLORS.green });
-  }
+  if (x === 0 || x === 1.1) materials.push({ color: COLORS.black });
+  else materials.push({ color: COLORS.green });
   
-  // Top face (y+)
-  if (y === 0 || y === -1.1) {
-    materials.push({ color: COLORS.black });
-  } else {
-    materials.push({ color: COLORS.white });
-  }
+  if (y === 0 || y === -1.1) materials.push({ color: COLORS.black });
+  else materials.push({ color: COLORS.white });
   
-  // Bottom face (y-)
-  if (y === 0 || y === 1.1) {
-    materials.push({ color: COLORS.black });
-  } else {
-    materials.push({ color: COLORS.yellow });
-  }
+  if (y === 0 || y === 1.1) materials.push({ color: COLORS.black });
+  else materials.push({ color: COLORS.yellow });
   
-  // Front face (z+)
-  if (z === 0 || z === -1.1) {
-    materials.push({ color: COLORS.black });
-  } else {
-    materials.push({ color: COLORS.red });
-  }
+  if (z === 0 || z === -1.1) materials.push({ color: COLORS.black });
+  else materials.push({ color: COLORS.red });
   
-  // Back face (z-)
-  if (z === 0 || z === 1.1) {
-    materials.push({ color: COLORS.black });
-  } else {
-    materials.push({ color: COLORS.orange });
-  }
+  if (z === 0 || z === 1.1) materials.push({ color: COLORS.black });
+  else materials.push({ color: COLORS.orange });
   
   return materials;
 };
 
-export const Cubelet: React.FC<CubeletProps> = ({ position }) => {
-  const meshRef = useRef<Mesh>(null);
+export const Cubelet: React.FC<CubeletProps> = ({ id, position, onHover, isHovered, isBlocked }) => {
+  const groupRef = useRef<Group>(null!);
   const [x, y, z] = position;
-  
-  // Skip rendering the center piece (it's hidden anyway)
+
+  const { scale, animPosition } = useSpring({
+    scale: isHovered ? 1.2 : 1,
+    animPosition: isHovered ? 0.3 : 0,
+    config: { tension: 400, friction: 15 },
+  });
+
+  const materials = useMemo(() => generateMaterials(x, y, z), [x, y, z]);
+
+  const handlePointerOver = (e: React.PointerEvent<THREE.Object3D>) => {
+    e.stopPropagation();
+    if (isBlocked) return;
+    onHover(id);
+  };
+
+  const handlePointerOut = (e: React.PointerEvent<THREE.Object3D>) => {
+    e.stopPropagation();
+    onHover(null);
+  };
+
   if (x === 0 && y === 0 && z === 0) {
     return null;
   }
-  
-  const materials = generateMaterials(x, y, z);
-  
+
+  const direction = useMemo(() => new Vector3(x, y, z).normalize(), [x, y, z]);
+
   return (
-    <group position={position}>
-      {/* Main cube */}
-      <mesh ref={meshRef}>
-        <boxGeometry args={[1, 1, 1]} />
-        {materials.map((material, index) => (
-          <meshBasicMaterial key={index} attach={`material-${index}`} color={material.color} />
-        ))}
-        <Edges>
-          <lineBasicMaterial color={0xffffff} linewidth={4} />
-        </Edges>
-      </mesh>
+    <group 
+      ref={groupRef}
+      position={position}
+      onPointerOver={handlePointerOver}
+      onPointerOut={handlePointerOut}
+    >
+      <a.group
+        scale={scale as any}
+        position={animPosition.to((val) => direction.clone().multiplyScalar(val).toArray())}
+      >
+        <mesh>
+          <boxGeometry args={[1, 1, 1]} />
+          {materials.map((material, index) => (
+            <meshBasicMaterial key={index} attach={`material-${index}`} color={material.color} />
+          ))}
+          <Edges>
+            <lineBasicMaterial color={0xffffff} linewidth={4} />
+          </Edges>
+        </mesh>
+      </a.group>
     </group>
   );
 };

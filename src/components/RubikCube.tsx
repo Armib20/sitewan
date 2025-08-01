@@ -26,10 +26,11 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
   const cubeGroupRef = useRef<Group>(null);
   const rotationGroupRef = useRef<Group>(null);
   const [animationState, setAnimationState] = useState<AnimationState | null>(null);
+  const [hoveredCubelet, setHoveredCubelet] = useState<string | null>(null);
   
   // Ambient rotation and hover state
   const [ambientRotationSpeed] = useState(0.002);
-  const [animationDuration] = useState(175);
+  const [animationDuration] = useState(350);
   
   // Helper function to round position values to -1.1, 0, or 1.1
   const round = useCallback((v: number) => {
@@ -85,7 +86,7 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
   // Animation loop and ambient rotation
   useFrame(() => {
     // Only do ambient rotation when NOT animating face moves
-    if (ambientGroupRef.current && !animationState) {
+        if (ambientGroupRef.current && !animationState && !hoveredCubelet) {
       ambientGroupRef.current.rotation.y += ambientRotationSpeed;
       ambientGroupRef.current.rotation.x += ambientRotationSpeed * 0.3;
     }
@@ -118,7 +119,7 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
 
   // Animate X face rotation
   const animateXFace = useCallback((xpos: number, direction: number): Promise<void> => {
-    if (animationState) return Promise.resolve();
+        if (animationState || hoveredCubelet) return Promise.resolve();
     
     return new Promise((resolve) => {
       attachToRotationGroup('x', xpos);
@@ -136,7 +137,7 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
 
   // Animate Y face rotation
   const animateYFace = useCallback((ypos: number, direction: number): Promise<void> => {
-    if (animationState) return Promise.resolve();
+        if (animationState || hoveredCubelet) return Promise.resolve();
     
     return new Promise((resolve) => {
       attachToRotationGroup('y', ypos);
@@ -154,7 +155,7 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
 
   // Animate Z face rotation
   const animateZFace = useCallback((zpos: number, direction: number): Promise<void> => {
-    if (animationState) return Promise.resolve();
+        if (animationState || hoveredCubelet) return Promise.resolve();
     
     return new Promise((resolve) => {
       attachToRotationGroup('z', zpos);
@@ -215,12 +216,19 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
   return (
     <group ref={ambientGroupRef}>
       <group ref={cubeGroupRef}>
-        {positions.map((position) => (
-          <Cubelet 
-            key={`${position[0]}-${position[1]}-${position[2]}`} 
-            position={position} 
-          />
-        ))}
+        {positions.map((position) => {
+          const id = `${position[0]}-${position[1]}-${position[2]}`;
+          return (
+            <Cubelet 
+              key={id}
+              id={id}
+              position={position}
+              onHover={setHoveredCubelet}
+              isHovered={hoveredCubelet === id}
+              isBlocked={!!animationState}
+            />
+          );
+        })}
       </group>
       <group ref={rotationGroupRef} />
     </group>
