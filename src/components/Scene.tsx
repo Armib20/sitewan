@@ -1,12 +1,13 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useContext } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { RubikCube, type RubikCubeRef } from './RubikCube';
 import { useKeyboardControls } from '../hooks/useKeyboardControls';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { EffectComposer, Bloom, GodRays } from '@react-three/postprocessing';
 import type { PageData } from '../data/pageData';
 import { a, useSpring } from '@react-spring/web';
 import { PagePreview } from './PagePreview';
+import { LightSourceContext } from '../contexts/LightSourceContext';
 
 export const Scene: React.FC = () => {
   const cubeRef = useRef<RubikCubeRef>(null);
@@ -14,6 +15,7 @@ export const Scene: React.FC = () => {
   const [isReverse, setIsReverse] = useState(false);
   const [activePage, setActivePage] = useState<PageData | null>(null);
   const [selectedPage, setSelectedPage] = useState<PageData | null>(null);
+  const { lightSource } = useContext(LightSourceContext);
 
   const styles = useSpring({
     opacity: activePage ? 1 : 0,
@@ -32,7 +34,7 @@ export const Scene: React.FC = () => {
     <div className="w-screen h-screen bg-black">
       {/* Name */}
       <div className="absolute top-5 left-5 z-10 font-sans">
-        <h1 style={{ color: 'white', fontSize: '2.25rem', fontWeight: 'bold', fontFamily: "'Cormorant Garamond', serif", padding: "1rem", margin: "0.5rem" }}>Ali Rizwan</h1>
+        <h1 style={{ color: 'white', fontSize: '5rem', fontWeight: 'bold', fontFamily: "'Cormorant Garamond', serif", padding: "1rem", margin: "0.5rem" }}>Ali Rizwan</h1>
       </div>
 
       {/* Page Info */}
@@ -75,26 +77,68 @@ export const Scene: React.FC = () => {
             near: 0.1,
             far: 1000,
           }}
+          // Performance optimizations for smoother animations
+          frameloop="always"
+          dpr={[1, 2]} // Limit device pixel ratio for performance
+          performance={{ min: 0.8 }} // Maintain 80% performance minimum
+          gl={{
+            antialias: false, // Disable for better performance - post-processing handles this
+            alpha: false,
+            powerPreference: "high-performance"
+          }}
         >
-          {/* Lighting */}
-          <ambientLight intensity={0.6} color={0x606060} />
-          <pointLight position={[0, 4, 2]} intensity={1} color={0xffffff} />
-
+          {/* Optimized Lighting */}
+          <pointLight position={[0, 4, 2]} intensity={0.3} color={0xffffff} />
+          {/* Additional ambient for better base visibility - performance friendly */}
+          <ambientLight intensity={0.15} color={0x404040} />
+          
           {/* Orbit Controls */}
           <OrbitControls enableDamping dampingFactor={0.2} autoRotate={false} />
 
           {/* Rubik's Cube */}
           <RubikCube ref={cubeRef} setActivePage={setActivePage} setSelectedPage={setSelectedPage} />
 
-          {/* Effects */}
-          <EffectComposer>
-            <Bloom
-              luminanceThreshold={0.3}
-              luminanceSmoothing={0.9}
-              height={300}
-              intensity={1.5}
-            />
-          </EffectComposer>
+          {/* Optimized Effects - Lighter processing for better performance */}
+          {lightSource && lightSource.current ? (
+            <EffectComposer
+              stencilBuffer={false}
+              depthBuffer={true}
+              multisampling={0}
+            >
+              <GodRays 
+                sun={lightSource.current} 
+                blur={true}
+                samples={30}
+                density={0.8}
+                decay={0.9}
+                weight={0.3}
+                exposure={0.2}
+              />
+              <Bloom
+                luminanceThreshold={0.98}
+                luminanceSmoothing={0.05}
+                height={150}
+                intensity={1.5}
+                kernelSize={1}
+                levels={5}
+              />
+            </EffectComposer>
+          ) : (
+            <EffectComposer
+              stencilBuffer={false}
+              depthBuffer={true}
+              multisampling={0}
+            >
+              <Bloom
+                luminanceThreshold={0.98}
+                luminanceSmoothing={0.05}
+                height={150}
+                intensity={0.8}
+                kernelSize={1}
+                levels={5}
+              />
+            </EffectComposer>
+          )}
         </Canvas>
       </div>
     </div>

@@ -34,12 +34,30 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
   const rotationGroupRef = useRef<Group>(null);
   const [animationState, setAnimationState] = useState<AnimationState | null>(null);
   const [hoveredCubelet, setHoveredCubelet] = useState<string | null>(null);
+  const [rotatingCubelets, setRotatingCubelets] = useState<string[]>([]);
+  const [rotationColor, setRotationColor] = useState('#FFFFFF');
+  const [colorIndex, setColorIndex] = useState(0);
   const [hoveredPageIndex, setHoveredPageIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState<PageData | null>(null);
 
   // Ambient rotation and hover state
   const [ambientRotationSpeed] = useState(0.002);
   const [animationDuration] = useState(350);
+
+  const neonPalette = [
+    '#FFFFFF', // White
+    '#FF0000', // Red
+    '#0000FF', // Blue
+    '#FFA500', // Orange
+    '#00FF00', // Green
+    '#FFD600'  // Yellow
+  ];
+
+  const getNextColor = () => {
+    const color = neonPalette[colorIndex];
+    setColorIndex((prevIndex) => (prevIndex + 1) % neonPalette.length);
+    return color;
+  };
 
   // Helper function to round position values to -1.1, 0, or 1.1
   const round = useCallback((v: number) => {
@@ -67,12 +85,12 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
     
     const cubePos = new Vector3();
     const cubesToMove = cubeGroupRef.current.children.filter((child) => {
-      // Get position relative to cubeGroup, not world position
       child.getWorldPosition(cubePos);
-      // Transform to cube group's local space
       cubeGroupRef.current!.worldToLocal(cubePos);
       return round(cubePos[axis]) === position;
     });
+
+    setRotatingCubelets(cubesToMove.map(c => c.name));
 
     cubesToMove.forEach((cube) => {
       rotationGroupRef.current!.attach(cube);
@@ -88,8 +106,9 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
       cubeGroupRef.current!.attach(cube);
     });
     
-    // Reset rotation group
+    // Reset rotation group and clear rotating cubelets
     rotationGroupRef.current.rotation.set(0, 0, 0);
+    setRotatingCubelets([]);
   }, []);
 
   // Animation loop and ambient rotation
@@ -130,6 +149,7 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
   const animateXFace = useCallback((xpos: number, direction: number): Promise<void> => {
         if (animationState || hoveredCubelet) return Promise.resolve();
     
+    setRotationColor(getNextColor());
     return new Promise((resolve) => {
       attachToRotationGroup('x', xpos);
       setAnimationState({
@@ -148,6 +168,7 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
   const animateYFace = useCallback((ypos: number, direction: number): Promise<void> => {
         if (animationState || hoveredCubelet) return Promise.resolve();
     
+    setRotationColor(getNextColor());
     return new Promise((resolve) => {
       attachToRotationGroup('y', ypos);
       setAnimationState({
@@ -166,6 +187,7 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
   const animateZFace = useCallback((zpos: number, direction: number): Promise<void> => {
         if (animationState || hoveredCubelet) return Promise.resolve();
     
+    setRotationColor(getNextColor());
     return new Promise((resolve) => {
       attachToRotationGroup('z', zpos);
       setAnimationState({
@@ -247,10 +269,13 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
           return (
             <Cubelet
               key={id}
+              name={id}
               id={id}
               position={position}
               onHover={handleHover}
               isHovered={hoveredCubelet === id}
+              isRotating={rotatingCubelets.includes(id)}
+              rotationColor={rotationColor}
               isBlocked={!!animationState}
               onClick={handleClick}
             />
