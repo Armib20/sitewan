@@ -1,0 +1,63 @@
+# Rubik's Cube Project - Cursor AI Rules
+
+## Project Overview
+
+This is a 3D interactive Rubik's cube built with React Three Fiber, featuring
+smooth animations and hover effects.
+
+## Architecture Context
+
+- **Main Component**: `RubikCube` manages 26 cubelets and coordinates animations
+- **Individual Pieces**: `Cubelet` components handle hover effects and rendering
+- **Animation Systems**: Face rotations (for solving) + hover effects (for
+  interaction)
+- **State Management**: Hierarchical - parent coordinates global state, children
+  handle presentation
+
+## Key Technical Patterns
+
+- **Animation Coordination**: Uses attach/animate/detach pattern for face
+  rotations
+- **Hover System**: Spring-based animations with direction calculation from
+  position vectors
+- **State Blocking**: Face rotations block hover, hover blocks ambient rotation
+- **Event Flow**: Child → Parent callbacks for state updates, Parent → Child
+  props for derived state
+
+## Documentation Reference
+
+Complete technical documentation is available in `/docs/`:
+
+- `/docs/README.md` - Main overview and architecture
+- `/docs/components/` - Detailed component documentation
+- `/docs/animation-system.md` - Animation patterns and timing
+- `/docs/state-management.md` - State flow and coordination
+- `/docs/hover-effects.md` - Interactive feedback system
+- `/docs/keyboard-controls.md` - Input handling
+
+## Code Style Guidelines
+
+- Use TypeScript interfaces for all component props
+- Implement animations with `@react-spring/three`
+- Use `useCallback` for stable function references
+- Memoize expensive calculations with `useMemo`
+- Follow the attach/detach pattern for group transformations
+
+## When Making Changes
+
+1. **Adding Features**: Check state coordination in `/docs/state-management.md`
+2. **Animation Issues**: Reference timing patterns in
+   `/docs/animation-system.md`
+3. **Component Changes**: Follow patterns documented in `/docs/components/`
+4. **Performance**: Use optimization techniques documented in each component
+   guide
+
+## Current Implementation Status
+
+- ✅ Face rotations (X/Y/Z axes with keyboard controls)
+- ✅ Hover effects (scale + pop-out with spring animations)
+- ✅ State coordination (blocking logic prevents conflicts)
+- ✅ Ambient rotation (pauses during interactions)
+
+When assisting with this project, please reference the documentation patterns
+and maintain consistency with the established architecture.
