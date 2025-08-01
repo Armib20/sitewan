@@ -1,16 +1,18 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { RubikCubeRef } from '../components/RubikCube';
+import type { RubikCubeRef } from '../components/RubikCube';
 import { RubikAPI } from '../services/api';
 
-export enum Face {
-  RIGHT = 'R',
-  LEFT = 'L', 
-  MID = 'M',
-  UP = 'U',
-  DOWN = 'D',
-  FRONT = 'F',
-  BACK = 'B',
-}
+export const Face = {
+  RIGHT: 'R',
+  LEFT: 'L', 
+  MID: 'M',
+  UP: 'U',
+  DOWN: 'D',
+  FRONT: 'F',
+  BACK: 'B',
+} as const;
+
+export type Face = (typeof Face)[keyof typeof Face];
 
 interface KeyAction {
   action: () => Promise<void>;

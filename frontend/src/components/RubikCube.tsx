@@ -1,6 +1,6 @@
-import React, { useRef, useCallback, forwardRef, useImperativeHandle, useState } from 'react';
-import { Group, Matrix4, Vector3, Euler, Raycaster, Vector2 } from 'three';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useRef, useCallback, forwardRef, useImperativeHandle, useState } from 'react';
+import { Group, Vector3 } from 'three';
+import { useFrame } from '@react-three/fiber';
 import { Cubelet } from './Cubelet';
 
 export interface RubikCubeRef {
@@ -29,11 +29,6 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
   
   // Ambient rotation and hover state
   const [ambientRotationSpeed] = useState(0.002);
-  const [hoveredCubelet, setHoveredCubelet] = useState<string | null>(null);
-  const [originalPositions] = useState(new Map());
-  const { camera, gl } = useThree();
-  const raycaster = useRef(new Raycaster());
-  const mouse = useRef(new Vector2());
   
   // Helper function to round position values to -1.1, 0, or 1.1
   const round = useCallback((v: number) => {
@@ -214,81 +209,12 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
     }
   }
 
-  // Handle mouse move for hover effects
-  const handleMouseMove = useCallback((event: MouseEvent) => {
-    if (!cubeGroupRef.current || !ambientGroupRef.current) return;
-    
-    // Convert mouse position to normalized device coordinates
-    mouse.current.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.current.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    
-    // Update raycaster
-    raycaster.current.setFromCamera(mouse.current, camera);
-    
-    // Find intersections with the ambient group (which contains everything)
-    const intersects = raycaster.current.intersectObjects(ambientGroupRef.current.children, true);
-    
-    if (intersects.length > 0) {
-      const intersected = intersects[0].object;
-      const cubeId = `${intersected.position.x}-${intersected.position.y}-${intersected.position.z}`;
-      
-      if (hoveredCubelet !== cubeId) {
-        // Reset previous hover
-        resetHoverEffect();
-        
-        // Apply new hover effect
-        setHoveredCubelet(cubeId);
-        applyHoverEffect(intersected, intersects[0].face);
-      }
-    } else {
-      // No intersection, reset hover
-      resetHoverEffect();
-    }
-  }, [camera, hoveredCubelet]);
 
-  // Apply hover effect
-  const applyHoverEffect = useCallback((cubelet: any, face: any) => {
-    if (!originalPositions.has(cubelet.uuid)) {
-      originalPositions.set(cubelet.uuid, cubelet.position.clone());
-    }
-    
-    // Determine pop direction based on face normal
-    const normal = face.normal.clone().transformDirection(cubelet.matrixWorld);
-    const popDistance = 0.15;
-    
-    // Animate to popped position
-    const targetPosition = cubelet.position.clone().add(normal.multiplyScalar(popDistance));
-    cubelet.position.lerp(targetPosition, 0.15);
-  }, [originalPositions]);
-
-  // Reset hover effect
-  const resetHoverEffect = useCallback(() => {
-    if (hoveredCubelet && cubeGroupRef.current) {
-      originalPositions.forEach((originalPos: Vector3, uuid: string) => {
-        const cubelet = cubeGroupRef.current!.children.find((child: any) => child.uuid === uuid);
-        if (cubelet) {
-          cubelet.position.lerp(originalPos, 0.15);
-          setTimeout(() => originalPositions.delete(uuid), 300);
-        }
-      });
-      setHoveredCubelet(null);
-    }
-  }, [hoveredCubelet, originalPositions]);
-
-  // Add mouse event listener
-  React.useEffect(() => {
-    const canvas = gl.domElement;
-    canvas.addEventListener('mousemove', handleMouseMove);
-    
-    return () => {
-      canvas.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, [gl.domElement, handleMouseMove]);
 
   return (
     <group ref={ambientGroupRef}>
       <group ref={cubeGroupRef}>
-        {positions.map((position, index) => (
+        {positions.map((position) => (
           <Cubelet 
             key={`${position[0]}-${position[1]}-${position[2]}`} 
             position={position} 
