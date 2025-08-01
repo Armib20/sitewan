@@ -1,6 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
 import type { RubikCubeRef } from '../components/RubikCube';
-import { RubikAPI } from '../services/api';
 
 export const Face = {
   RIGHT: 'R',
@@ -73,8 +72,7 @@ export const useKeyboardControls = ({
       }
 
       // Send move to backend after animation completes
-      const move = face + (isReverse ? "'" : '');
-      await RubikAPI.postMove(move);
+      const move = face + (isReverse ? "'" : '');      
       onMove?.(move);
       
     } finally {

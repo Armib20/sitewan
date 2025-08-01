@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { Mesh } from 'three';
+import { Edges } from '@react-three/drei';
 
 interface CubeletProps {
   position: [number, number, number];
@@ -8,12 +9,12 @@ interface CubeletProps {
 // Rubik's cube standard colors
 const COLORS = {
   black: 0x000000,   // hidden faces
-  blue: 0x003DA5,    // right face
-  green: 0x009A44,   // left face  
-  white: 0xFFFFFF,   // top face
-  yellow: 0xFFD700,  // bottom face
-  red: 0xBA0C2F,     // front face
-  orange: 0xFE5000,  // back face
+  blue: 0x000000,    // right face
+  green: 0x000000,   // left face  
+  white: 0x000000,   // top face
+  yellow: 0x000000,  // bottom face
+  red: 0x000000,     // front face
+  orange: 0x000000,  // back face
 };
 
 const generateMaterials = (x: number, y: number, z: number) => {
@@ -85,12 +86,9 @@ export const Cubelet: React.FC<CubeletProps> = ({ position }) => {
         {materials.map((material, index) => (
           <meshBasicMaterial key={index} attach={`material-${index}`} color={material.color} />
         ))}
-      </mesh>
-      
-      {/* White wireframe for edges */}
-      <mesh>
-        <boxGeometry args={[1.01, 1.01, 1.01]} />
-        <meshBasicMaterial color={0xffffff} wireframe transparent opacity={0.3} />
+        <Edges>
+          <lineBasicMaterial color={0xffffff} linewidth={4} />
+        </Edges>
       </mesh>
     </group>
   );
