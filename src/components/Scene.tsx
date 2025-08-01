@@ -32,20 +32,8 @@ export const Scene: React.FC = () => {
         color: 'white',
         fontFamily: 'Arial, sans-serif'
       }}>
-        <h2>Key Bindings</h2>
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          <li>Front: 'F' / Back: 'B'</li>
-          <li>Left: 'L' / Right: 'R'</li>
-          <li>Up: 'U' / Down: 'D'</li>
-          <li>Middle: 'M'</li>
-          <li>Forward: '1' / Reverse: '2'</li>
-        </ul>
-        
-        <div style={{ marginTop: '20px' }}>
-          <div>Direction: {isReverse ? 'Counter-clockwise' : 'Clockwise'}</div>
-          {lastMove && <div>Last Move: {lastMove}</div>}
-          {(cubeRef.current?.isAnimating || isAnimating) && <div>Animating...</div>}
-        </div>
+        <h1>Ali Rizwan </h1>
+        <p>Press a key</p>        
       </div>
 
       {/* Three.js Canvas */}
