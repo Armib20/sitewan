@@ -8,12 +8,14 @@ import { pages } from '@/data/pageData';
 interface RubikCubeProps {
   setActivePage: (page: PageData | null) => void;
   setSelectedPage: (page: PageData | null) => void;
+  onExplode: () => void;
+  isExploded: boolean;
 }
 
 export interface RubikCubeRef {
   animateXFace: (xpos: number, direction: number) => Promise<void>;
   animateYFace: (ypos: number, direction: number) => Promise<void>;
-  animateZFace: (zpos: number, direction: number) => Promise<void>;
+  animateZFace: (zpos: number, direction:number) => Promise<void>;
   resetCube: () => void;
   isAnimating: boolean;
 }
@@ -28,7 +30,7 @@ interface AnimationState {
   resolve?: () => void;
 }
 
-export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePage, setSelectedPage }, ref) => {
+export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePage, setSelectedPage, onExplode, isExploded }, ref) => {
   const ambientGroupRef = useRef<Group>(null); // For ambient rotation only
   const cubeGroupRef = useRef<Group>(null);
   const rotationGroupRef = useRef<Group>(null);
@@ -38,7 +40,6 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
   const [rotationColor, setRotationColor] = useState('#FFFFFF');
   const [colorIndex, setColorIndex] = useState(0);
   const [hoveredPageIndex, setHoveredPageIndex] = useState(0);
-  const [currentPage, setCurrentPage] = useState<PageData | null>(null);
 
   // Ambient rotation and hover state
   const [ambientRotationSpeed] = useState(0.002);
@@ -113,8 +114,8 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
 
   // Animation loop and ambient rotation
   useFrame(() => {
-    // Only do ambient rotation when NOT animating face moves
-        if (ambientGroupRef.current && !animationState && !hoveredCubelet) {
+    // Only do ambient rotation when NOT animating face moves or exploded
+    if (ambientGroupRef.current && !animationState && !hoveredCubelet && !isExploded) {
       ambientGroupRef.current.rotation.y += ambientRotationSpeed;
       ambientGroupRef.current.rotation.x += ambientRotationSpeed * 0.3;
     }
@@ -147,7 +148,7 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
 
   // Animate X face rotation
   const animateXFace = useCallback((xpos: number, direction: number): Promise<void> => {
-        if (animationState || hoveredCubelet) return Promise.resolve();
+    if (animationState || hoveredCubelet || isExploded) return Promise.resolve();
     
     setRotationColor(getNextColor());
     return new Promise((resolve) => {
@@ -162,11 +163,11 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
         resolve,
       });
     });
-  }, [animationState, hoveredCubelet, attachToRotationGroup, animationDuration]);
+  }, [animationState, hoveredCubelet, isExploded, attachToRotationGroup, animationDuration]);
 
   // Animate Y face rotation
   const animateYFace = useCallback((ypos: number, direction: number): Promise<void> => {
-        if (animationState || hoveredCubelet) return Promise.resolve();
+    if (animationState || hoveredCubelet || isExploded) return Promise.resolve();
     
     setRotationColor(getNextColor());
     return new Promise((resolve) => {
@@ -181,11 +182,11 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
         resolve,
       });
     });
-  }, [animationState, hoveredCubelet, attachToRotationGroup, animationDuration]);
+  }, [animationState, hoveredCubelet, isExploded, attachToRotationGroup, animationDuration]);
 
   // Animate Z face rotation
   const animateZFace = useCallback((zpos: number, direction: number): Promise<void> => {
-        if (animationState || hoveredCubelet) return Promise.resolve();
+    if (animationState || hoveredCubelet || isExploded) return Promise.resolve();
     
     setRotationColor(getNextColor());
     return new Promise((resolve) => {
@@ -200,7 +201,7 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
         resolve,
       });
     });
-  }, [animationState, hoveredCubelet, attachToRotationGroup, animationDuration]);
+  }, [animationState, hoveredCubelet, isExploded, attachToRotationGroup, animationDuration]);
 
   const resetCube = useCallback(() => {
     if (animationState) return; // Don't reset during animation
@@ -243,22 +244,22 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
   }
 
   const handleHover = useCallback((id: string | null) => {
+    if (isExploded) return;
     setHoveredCubelet(id);
     if (id) {
       const page = pages[hoveredPageIndex];
       setActivePage(page);
-      setCurrentPage(page);
       setHoveredPageIndex((prevIndex) => (prevIndex + 1) % pages.length);
     } else {
       setActivePage(null);
-      setCurrentPage(null);
     }
-  }, [setActivePage, hoveredPageIndex]);
+  }, [setActivePage, hoveredPageIndex, isExploded]);
 
   const handleClick = () => {
-    if (currentPage) {
-      setSelectedPage(currentPage);
-    }
+    if (isExploded) return;
+    onExplode();
+    setActivePage(null);
+    setSelectedPage(null);
   };
 
   return (
@@ -276,8 +277,9 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
               isHovered={hoveredCubelet === id}
               isRotating={rotatingCubelets.includes(id)}
               rotationColor={rotationColor}
-              isBlocked={!!animationState}
+              isBlocked={!!animationState || isExploded}
               onClick={handleClick}
+              isExploded={isExploded}
             />
           );
         })}

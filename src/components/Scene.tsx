@@ -9,13 +9,19 @@ import { a, useSpring } from '@react-spring/web';
 import { PagePreview } from './PagePreview';
 import { LightSourceContext } from '../contexts/LightSourceContext';
 
-export const Scene: React.FC = () => {
-  const cubeRef = useRef<RubikCubeRef>(null);
+interface SceneProps {
+  isExploded: boolean;
+  onExplode: () => void;
+  cubeRef: React.RefObject<RubikCubeRef | null>;
+}
+
+export const Scene: React.FC<SceneProps> = ({ isExploded, onExplode, cubeRef }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isReverse, setIsReverse] = useState(false);
   const [activePage, setActivePage] = useState<PageData | null>(null);
   const [selectedPage, setSelectedPage] = useState<PageData | null>(null);
   const { lightSource } = useContext(LightSourceContext);
+  const centralSunRef = useRef<any>(null!);
 
   const styles = useSpring({
     opacity: activePage ? 1 : 0,
@@ -92,27 +98,47 @@ export const Scene: React.FC = () => {
           {/* Additional ambient for better base visibility - performance friendly */}
           <ambientLight intensity={0.15} color={0x404040} />
           
+          {/* Central sun - always present for proper ref */}
+          <mesh ref={centralSunRef} position={[0, 0, 0]} visible={isExploded}>
+            <sphereGeometry args={[0.5, 32, 32]} />
+            <meshBasicMaterial 
+              color={0xffffff} 
+              toneMapped={false}
+              transparent={false}
+            />
+          </mesh>
+          
+          {isExploded && (
+            <pointLight position={[0, 0, 0]} intensity={2.5} color={0xffffff} />
+          )}
+
           {/* Orbit Controls */}
           <OrbitControls enableDamping dampingFactor={0.2} autoRotate={false} />
 
           {/* Rubik's Cube */}
-          <RubikCube ref={cubeRef} setActivePage={setActivePage} setSelectedPage={setSelectedPage} />
+          <RubikCube 
+            ref={cubeRef} 
+            setActivePage={setActivePage} 
+            setSelectedPage={setSelectedPage}
+            onExplode={onExplode} 
+            isExploded={isExploded}
+          />
 
           {/* Optimized Effects - Lighter processing for better performance */}
-          {lightSource && lightSource.current ? (
+          {(lightSource && lightSource.current) || isExploded ? (
             <EffectComposer
               stencilBuffer={false}
               depthBuffer={true}
               multisampling={0}
             >
               <GodRays 
-                sun={lightSource.current} 
+                sun={isExploded ? centralSunRef.current : lightSource!.current} 
                 blur={true}
-                samples={30}
-                density={0.8}
-                decay={0.9}
-                weight={0.3}
-                exposure={0.2}
+                samples={isExploded ? 60 : 30}
+                density={0.95}
+                decay={0.95}
+                weight={isExploded ? 0.6 : 0.3}
+                exposure={isExploded ? 0.35 : 0.2}
               />
               <Bloom
                 luminanceThreshold={0.98}
