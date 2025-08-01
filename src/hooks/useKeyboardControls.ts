@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import type { RubikCubeRef } from '../components/RubikCube';
 
 export const Face = {
@@ -22,16 +22,19 @@ interface UseKeyboardControlsProps {
   onMove?: (move: string) => void;
 }
 
+type QueuedMove = {
+  face: Face;
+  isReverse: boolean;
+};
+
 export const useKeyboardControls = ({
   cubeRef,
   isAnimating,
   setIsAnimating,
   isReverse,
-  setIsReverse,
   onMove,
 }: UseKeyboardControlsProps) => {
-  const lastKeyTime = useRef(0);
-  const KEY_COOLDOWN = 100; // milliseconds
+  const [moveQueue, setMoveQueue] = useState<QueuedMove[]>([]);
 
   const animateRotation = useCallback(async (face: Face) => {
     if (!cubeRef.current || isAnimating) return;
@@ -81,56 +84,59 @@ export const useKeyboardControls = ({
 
     event.preventDefault();
 
-    const currentTime = Date.now();
-    if (currentTime - lastKeyTime.current < KEY_COOLDOWN) {
-      return;
-    }
-    lastKeyTime.current = currentTime;
+    const faces = Object.values(Face);
+    const randomFace = faces[Math.floor(Math.random() * faces.length)];
+    const randomIsReverse = Math.random() < 0.5;
+    
+    setMoveQueue((prev) => [...prev, { face: randomFace, isReverse: randomIsReverse }]);
+  }, []);
 
-    if (!cubeRef.current || isAnimating) return;
+  useEffect(() => {
+    const processQueue = async () => {
+      if (isAnimating || moveQueue.length === 0) return;
 
-    setIsAnimating(true);
+      const nextMove = moveQueue[0];
+      setMoveQueue((prev) => prev.slice(1));
 
-    try {
-      const faces = Object.values(Face);
-      const randomFace = faces[Math.floor(Math.random() * faces.length)];
-      const randomIsReverse = Math.random() < 0.5;
-      
-      setIsReverse(randomIsReverse);
+      setIsAnimating(true);
 
-      const direction = randomIsReverse ? -1 : 1;
+      try {
+        if (cubeRef.current) {
+          const direction = nextMove.isReverse ? -1 : 1;
+          const face = nextMove.face;
 
-      switch (randomFace) {
-        case Face.RIGHT:
-          await cubeRef.current.animateXFace(1.1, direction);
-          break;
-        case Face.LEFT:
-          await cubeRef.current.animateXFace(-1.1, -direction);
-          break;
-        case Face.MID:
-          await cubeRef.current.animateXFace(0, direction);
-          break;
-        case Face.UP:
-          await cubeRef.current.animateYFace(1.1, direction);
-          break;
-        case Face.DOWN:
-          await cubeRef.current.animateYFace(-1.1, -direction);
-          break;
-        case Face.FRONT:
-          await cubeRef.current.animateZFace(1.1, direction);
-          break;
-        case Face.BACK:
-          await cubeRef.current.animateZFace(-1.1, -direction);
-          break;
+          switch (face) {
+            case Face.RIGHT:
+              await cubeRef.current.animateXFace(1.1, direction);
+              break;
+            case Face.LEFT:
+              await cubeRef.current.animateXFace(-1.1, -direction);
+              break;
+            case Face.MID:
+              await cubeRef.current.animateXFace(0, direction);
+              break;
+            case Face.UP:
+              await cubeRef.current.animateYFace(1.1, direction);
+              break;
+            case Face.DOWN:
+              await cubeRef.current.animateYFace(-1.1, -direction);
+              break;
+            case Face.FRONT:
+              await cubeRef.current.animateZFace(1.1, direction);
+              break;
+            case Face.BACK:
+              await cubeRef.current.animateZFace(-1.1, -direction);
+              break;
+          }
+          const move = face + (nextMove.isReverse ? "'" : "");
+          onMove?.(move);
+        }
+      } finally {
+        setIsAnimating(false);
       }
-
-      const move = randomFace + (randomIsReverse ? "'" : '');
-      onMove?.(move);
-
-    } finally {
-      setIsAnimating(false);
-    }
-  }, [cubeRef, isAnimating, setIsAnimating, setIsReverse, onMove]);
+    };
+    processQueue();
+  }, [moveQueue, isAnimating, cubeRef, setIsAnimating, onMove]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);

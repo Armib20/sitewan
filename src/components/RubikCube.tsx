@@ -29,6 +29,7 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
   
   // Ambient rotation and hover state
   const [ambientRotationSpeed] = useState(0.002);
+  const [animationDuration] = useState(175);
   
   // Helper function to round position values to -1.1, 0, or 1.1
   const round = useCallback((v: number) => {
@@ -124,14 +125,14 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
       setAnimationState({
         isAnimating: true,
         startTime: Date.now(),
-        duration: 300, // 300ms animation
+        duration: animationDuration,
         axis: 'x',
         position: xpos,
         targetRotation: (Math.PI / 2) * direction,
         resolve,
       });
     });
-  }, [animationState, attachToRotationGroup]);
+  }, [animationState, attachToRotationGroup, animationDuration]);
 
   // Animate Y face rotation
   const animateYFace = useCallback((ypos: number, direction: number): Promise<void> => {
@@ -142,14 +143,14 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
       setAnimationState({
         isAnimating: true,
         startTime: Date.now(),
-        duration: 300,
+        duration: animationDuration,
         axis: 'y',
         position: ypos,
         targetRotation: (Math.PI / 2) * direction,
         resolve,
       });
     });
-  }, [animationState, attachToRotationGroup]);
+  }, [animationState, attachToRotationGroup, animationDuration]);
 
   // Animate Z face rotation
   const animateZFace = useCallback((zpos: number, direction: number): Promise<void> => {
@@ -160,14 +161,14 @@ export const RubikCube = forwardRef<RubikCubeRef>((_, ref) => {
       setAnimationState({
         isAnimating: true,
         startTime: Date.now(),
-        duration: 300,
+        duration: animationDuration,
         axis: 'z',
         position: zpos,
         targetRotation: (Math.PI / 2) * direction,
         resolve,
       });
     });
-  }, [animationState, attachToRotationGroup]);
+  }, [animationState, attachToRotationGroup, animationDuration]);
 
   const resetCube = useCallback(() => {
     if (animationState) return; // Don't reset during animation

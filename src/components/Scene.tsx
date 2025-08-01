@@ -9,7 +9,6 @@ export const Scene: React.FC = () => {
   const cubeRef = useRef<RubikCubeRef>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isReverse, setIsReverse] = useState(false);
-  const [lastMove, setLastMove] = useState<string>('');
 
   // Initialize keyboard controls
   useKeyboardControls({
@@ -18,7 +17,6 @@ export const Scene: React.FC = () => {
     setIsAnimating,
     isReverse,
     setIsReverse,
-    onMove: setLastMove,
   });
 
   return (
