@@ -173,41 +173,40 @@ def x_up(cube_state):
 
 
 def update_cube_state(cube_state, move):
-    match move:
-        case "R":
-            rotate_right_clockwise(cube_state)
-        case "R'":
-            rotate_right_counterclockwise(cube_state)
-        case "L":
-            rotate_left_clockwise(cube_state)
-        case "L'":
-            rotate_left_counterclockwise(cube_state)
-        case "U":
-            rotate_up_clockwise(cube_state)
-        case "U'":
-            rotate_up_counterclockwise(cube_state)
-        case "D":
-            rotate_down_clockwise(cube_state)
-        case "D'":
-            rotate_down_counterclockwise(cube_state)
-        case "F":
-            rotate_front_clockwise(cube_state)
-        case "F'":
-            rotate_front_counterclockwise(cube_state)
-        case "B":
-            rotate_back_clockwise(cube_state)
-        case "B'":
-            rotate_back_counterclockwise(cube_state)
-        case "M":
-            rotate_right_counterclockwise(cube_state)
-            rotate_left_clockwise(cube_state)
-            x_up(cube_state)
-        case "M'":
-            rotate_right_clockwise(cube_state)
-            rotate_left_counterclockwise(cube_state)
-            x_down(cube_state)
-        case _:
-            raise ValueError("Invalid move", move)
+    if move == "R":
+        rotate_right_clockwise(cube_state)
+    elif move == "R'":
+        rotate_right_counterclockwise(cube_state)
+    elif move == "L":
+        rotate_left_clockwise(cube_state)
+    elif move == "L'":
+        rotate_left_counterclockwise(cube_state)
+    elif move == "U":
+        rotate_up_clockwise(cube_state)
+    elif move == "U'":
+        rotate_up_counterclockwise(cube_state)
+    elif move == "D":
+        rotate_down_clockwise(cube_state)
+    elif move == "D'":
+        rotate_down_counterclockwise(cube_state)
+    elif move == "F":
+        rotate_front_clockwise(cube_state)
+    elif move == "F'":
+        rotate_front_counterclockwise(cube_state)
+    elif move == "B":
+        rotate_back_clockwise(cube_state)
+    elif move == "B'":
+        rotate_back_counterclockwise(cube_state)
+    elif move == "M":
+        rotate_right_counterclockwise(cube_state)
+        rotate_left_clockwise(cube_state)
+        x_up(cube_state)
+    elif move == "M'":
+        rotate_right_clockwise(cube_state)
+        rotate_left_counterclockwise(cube_state)
+        x_down(cube_state)
+    else:
+        raise ValueError("Invalid move", move)
     print_cube_state(get_color_str(cube_state.copy()))
     return cube_state
 

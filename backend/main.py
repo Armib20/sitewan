@@ -7,11 +7,15 @@ from api import router
 
 app = FastAPI()
 
-env = os.getenv("ENV", "development")
-if env == "production":
-    origins = ["https://irisxu.me/rubik"]
-else:
-    origins = ["http://127.0.0.1:5500"]
+# Use environment variable for frontend URL
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
+origins = [
+    frontend_url,
+    "http://127.0.0.1:5500",  # original frontend
+    "http://localhost:5173",   # Vite dev server
+    "http://127.0.0.1:5173",   # Vite dev server alternative
+]
 
 
 app.add_middleware(
@@ -26,8 +30,6 @@ app.include_router(router)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8080))
-
-    if env == "production":
-        uvicorn.run("main:app", host="0.0.0.0", port=port)
-    else:
-        uvicorn.run("main:app", host="127.0.0.1", port=port, reload=True)
+    host = os.getenv("HOST", "127.0.0.1")
+    
+    uvicorn.run("main:app", host=host, port=port, reload=True)

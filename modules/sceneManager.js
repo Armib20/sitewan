@@ -1,5 +1,6 @@
 export let scene = new THREE.Scene();
 let camera, renderer, controls;
+let raycaster, mouse;
 
 // only needs to be called once
 export function initCanvas() {
@@ -38,6 +39,13 @@ export function initCanvas() {
 
   const axesHelper = new THREE.AxesHelper( 4 );
   scene.add( axesHelper );
+
+  // Initialize raycaster and mouse for hover detection
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+
+  // Add mouse event listeners
+  renderer.domElement.addEventListener('mousemove', onMouseMove, false);
 }
 
 // ADAPT TO WINDOW RESIZE
@@ -49,4 +57,19 @@ function resize() {
 
 export function render() {
   renderer.render(scene, camera);
+}
+
+// Mouse move handler for hover detection
+function onMouseMove(event) {
+  // Convert mouse position to normalized device coordinates (-1 to +1)
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  
+  // Update raycaster
+  raycaster.setFromCamera(mouse, camera);
+  
+  // Import and call hover detection function
+  import('./rubik.js').then(rubikModule => {
+    rubikModule.handleHover(raycaster);
+  });
 }
