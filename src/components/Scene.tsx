@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { RubikCube, type RubikCubeRef } from './RubikCube';
 import { useKeyboardControls } from '../hooks/useKeyboardControls';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 
 export const Scene: React.FC = () => {
   const cubeRef = useRef<RubikCubeRef>(null);
@@ -19,37 +20,6 @@ export const Scene: React.FC = () => {
     setIsReverse,
     onMove: setLastMove,
   });
-
-  const handleReset = async () => {
-    const isCurrentlyAnimating = cubeRef.current?.isAnimating || isAnimating;
-    if (cubeRef.current && !isCurrentlyAnimating) {
-      cubeRef.current.resetCube();
-      // Also reset backend state
-      const { RubikAPI } = await import('../services/api');
-      await RubikAPI.resetCube();
-      setLastMove('');
-    }
-  };
-
-  const handleSolve = async () => {
-    const isCurrentlyAnimating = cubeRef.current?.isAnimating || isAnimating;
-    if (isCurrentlyAnimating) return;
-    
-    try {
-      const { RubikAPI } = await import('../services/api');
-      const solution = await RubikAPI.getSolution();
-      
-      if (solution && solution.parsedMoves.length > 0) {
-        console.log('Solution:', solution.solutionString);
-        console.log('Moves:', solution.parsedMoves);
-        // TODO: Implement solution playback
-      } else {
-        console.log('Cube is already solved!');
-      }
-    } catch (error) {
-      console.error('Error getting solution:', error);
-    }
-  };
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#000000' }}>
@@ -70,41 +40,6 @@ export const Scene: React.FC = () => {
           <li>Middle: 'M'</li>
           <li>Forward: '1' / Reverse: '2'</li>
         </ul>
-        
-        <div style={{ marginTop: '20px' }}>
-          <button 
-            onClick={handleReset}
-            disabled={cubeRef.current?.isAnimating || isAnimating}
-            style={{
-              marginRight: '10px',
-              padding: '8px 16px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: (cubeRef.current?.isAnimating || isAnimating) ? 'not-allowed' : 'pointer',
-              opacity: (cubeRef.current?.isAnimating || isAnimating) ? 0.6 : 1,
-            }}
-          >
-            Reset
-          </button>
-          
-          <button 
-            onClick={handleSolve}
-            disabled={cubeRef.current?.isAnimating || isAnimating}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: (cubeRef.current?.isAnimating || isAnimating) ? 'not-allowed' : 'pointer',
-              opacity: (cubeRef.current?.isAnimating || isAnimating) ? 0.6 : 1,
-            }}
-          >
-            Solve
-          </button>
-        </div>
         
         <div style={{ marginTop: '20px' }}>
           <div>Direction: {isReverse ? 'Counter-clockwise' : 'Clockwise'}</div>
@@ -142,6 +77,14 @@ export const Scene: React.FC = () => {
         
         {/* Helper axes (for debugging - can be removed) */}
         {/* <axesHelper args={[4]} /> */}
+        <EffectComposer>
+          <Bloom
+            luminanceThreshold={0.3}
+            luminanceSmoothing={0.9}
+            height={300}
+            intensity={1.5}
+          />
+        </EffectComposer>
       </Canvas>
     </div>
   );
