@@ -11,6 +11,10 @@ function App() {
 
   const handleExplode = () => {
     setIsExploded(true);
+    // Reset explosion after 8 seconds (shorter since cubes are closer)
+    setTimeout(() => {
+      setIsExploded(false);
+    }, 8000);
   };
   
   return (

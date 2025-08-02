@@ -2,6 +2,7 @@ import { useRef, useState, useContext } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { RubikCube, type RubikCubeRef } from './RubikCube';
+import { AnimationControls } from './AnimationControls';
 import { useKeyboardControls } from '../hooks/useKeyboardControls';
 import { EffectComposer, Bloom, GodRays } from '@react-three/postprocessing';
 import type { PageData } from '../data/pageData';
@@ -74,6 +75,14 @@ export const Scene: React.FC<SceneProps> = ({ isExploded, onExplode, cubeRef }) 
         <PagePreview page={selectedPage} onBack={() => setSelectedPage(null)} />
       )}
 
+      {/* Animation Controls */}
+      {!selectedPage && (
+        <AnimationControls 
+          onTriggerAnimation={(type) => cubeRef.current?.triggerAnimation(type)}
+          isAnimating={cubeRef.current?.isAnimating || false}
+        />
+      )}
+
       {/* Three.js Canvas */}
       <div className={`w-full h-full ${selectedPage ? 'hidden' : 'block'}`}>
         <Canvas
@@ -99,18 +108,18 @@ export const Scene: React.FC<SceneProps> = ({ isExploded, onExplode, cubeRef }) 
           <ambientLight intensity={0.15} color={0x404040} />
           
           {/* Central sun - always present for proper ref */}
-          <mesh ref={centralSunRef} position={[0, 0, 0]} visible={isExploded}>
-            <sphereGeometry args={[0.5, 32, 32]} />
+          {/* <mesh ref={centralSunRef} position={[0, 0, 0]} visible={isExploded}>
+            <sphereGeometry args={[0.3, 32, 32]} />
             <meshBasicMaterial 
               color={0xffffff} 
               toneMapped={false}
               transparent={false}
             />
-          </mesh>
+          </mesh> */}
           
-          {isExploded && (
-            <pointLight position={[0, 0, 0]} intensity={2.5} color={0xffffff} />
-          )}
+          {/* {isExploded && (
+            <pointLight position={[0, 0, 0]} intensity={0.8} color={0xffffff} />
+          )} */}
 
           {/* Orbit Controls */}
           <OrbitControls enableDamping dampingFactor={0.2} autoRotate={false} />
@@ -124,21 +133,46 @@ export const Scene: React.FC<SceneProps> = ({ isExploded, onExplode, cubeRef }) 
             isExploded={isExploded}
           />
 
-          {/* Optimized Effects - Lighter processing for better performance */}
-          {(lightSource && lightSource.current) || isExploded ? (
+          {/* Optimized Effects - Render based on state */}
+          {/* {isExploded && centralSunRef.current ? (
             <EffectComposer
               stencilBuffer={false}
               depthBuffer={true}
               multisampling={0}
             >
               <GodRays 
-                sun={isExploded ? centralSunRef.current : lightSource!.current} 
+                sun={centralSunRef.current} 
                 blur={true}
-                samples={isExploded ? 60 : 30}
+                samples={40}
+                density={0.94}
+                decay={0.94}
+                weight={0.4}
+                exposure={0.15}
+              />
+              <Bloom
+                luminanceThreshold={0.98}
+                luminanceSmoothing={0.05}
+                height={150}
+                intensity={1.0}
+                kernelSize={1}
+                levels={5}
+              />
+            </EffectComposer>
+          ) : lightSource && lightSource.current ? ( */}
+          {lightSource && lightSource.current ? (
+            <EffectComposer
+              stencilBuffer={false}
+              depthBuffer={true}
+              multisampling={0}
+            >
+              <GodRays 
+                sun={lightSource.current} 
+                blur={true}
+                samples={30}
                 density={0.95}
                 decay={0.95}
-                weight={isExploded ? 0.6 : 0.3}
-                exposure={isExploded ? 0.35 : 0.2}
+                weight={0.3}
+                exposure={0.2}
               />
               <Bloom
                 luminanceThreshold={0.98}

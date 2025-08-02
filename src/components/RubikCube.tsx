@@ -30,11 +30,22 @@ interface AnimationState {
   resolve?: () => void;
 }
 
+interface WaveAnimationState {
+  isAnimating: boolean;
+  startTime: number;
+  duration: number;
+  sourcePosition: [number, number, number];
+  maxDistance: number;
+}
+
 export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePage, setSelectedPage, onExplode, isExploded }, ref) => {
   const ambientGroupRef = useRef<Group>(null); // For ambient rotation only
   const cubeGroupRef = useRef<Group>(null);
   const rotationGroupRef = useRef<Group>(null);
   const [animationState, setAnimationState] = useState<AnimationState | null>(null);
+  const [waveAnimationState, setWaveAnimationState] = useState<WaveAnimationState | null>(null);
+
+
   const [hoveredCubelet, setHoveredCubelet] = useState<string | null>(null);
   const [rotatingCubelets, setRotatingCubelets] = useState<string[]>([]);
   const [rotationColor, setRotationColor] = useState('#FFFFFF');
@@ -44,21 +55,23 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
   // Ambient rotation and hover state
   const [ambientRotationSpeed] = useState(0.002);
   const [animationDuration] = useState(350);
+  const [waveAnimationDuration] = useState(1000); // Optimized duration for performance
 
-  const neonPalette = [
-    '#FFFFFF', // White
-    '#FF0000', // Red
-    '#0000FF', // Blue
-    '#FFA500', // Orange
-    '#00FF00', // Green
-    '#FFD600'  // Yellow
+  // 6-move rotation system with corresponding colors
+  const rotationMoves = [
+    { move: 'R', color: '#FF0000', axis: 'x', position: 1.1, direction: 1 },   // Right face clockwise (Red)
+    { move: 'U', color: '#FFFFFF', axis: 'y', position: 1.1, direction: 1 },   // Up face clockwise (White)
+    { move: 'F', color: '#00FF00', axis: 'z', position: 1.1, direction: 1 },   // Front face clockwise (Green)
+    { move: "R'", color: '#FFA500', axis: 'x', position: 1.1, direction: -1 }, // Right face counter-clockwise (Orange)
+    { move: "U'", color: '#FFD600', axis: 'y', position: 1.1, direction: -1 }, // Up face counter-clockwise (Yellow)
+    { move: "F'", color: '#0000FF', axis: 'z', position: 1.1, direction: -1 }, // Front face counter-clockwise (Blue)
   ];
 
-  const getNextColor = () => {
-    const color = neonPalette[colorIndex];
-    setColorIndex((prevIndex) => (prevIndex + 1) % neonPalette.length);
-    return color;
-  };
+  const getNextMove = useCallback(() => {
+    const moveData = rotationMoves[colorIndex];
+    setColorIndex((prevIndex) => (prevIndex + 1) % rotationMoves.length);
+    return moveData;
+  }, [colorIndex, rotationMoves]);
 
   // Helper function to round position values to -1.1, 0, or 1.1
   const round = useCallback((v: number) => {
@@ -78,6 +91,33 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
   // Easing function for smooth animations
   const easeInOutCubic = useCallback((t: number) => {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }, []);
+
+  // Calculate distance between two positions
+  const calculateDistance = useCallback((pos1: [number, number, number], pos2: [number, number, number]) => {
+    const dx = pos1[0] - pos2[0];
+    const dy = pos1[1] - pos2[1];
+    const dz = pos1[2] - pos2[2];
+    return Math.sqrt(dx * dx + dy * dy + dz * dz);
+  }, []);
+
+  // Calculate wave intensity - uniform explosion from center
+  const calculateWaveIntensity = useCallback((position: [number, number, number], waveState: WaveAnimationState | null): number => {
+    if (!waveState) return 0;
+    
+    const elapsed = Date.now() - waveState.startTime;
+    const progress = Math.min(elapsed / waveState.duration, 1);
+    
+    if (progress >= 1) return 0;
+    
+    // Create uniform explosion effect - all cubelets respond simultaneously from center
+    // Use sine wave for smooth animation that peaks in the middle and fades out
+    const uniformIntensity = Math.sin(progress * Math.PI); // 0 -> 1 -> 0 over duration
+    
+    // Apply power curve for more dramatic effect
+    const enhancedIntensity = Math.pow(uniformIntensity, 0.8);
+    
+    return enhancedIntensity;
   }, []);
 
   // Move cubelets to rotation group for animation
@@ -115,7 +155,7 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
   // Animation loop and ambient rotation
   useFrame(() => {
     // Only do ambient rotation when NOT animating face moves or exploded
-    if (ambientGroupRef.current && !animationState && !hoveredCubelet && !isExploded) {
+    if (ambientGroupRef.current && !animationState && !hoveredCubelet && !waveAnimationState && !isExploded) {
       ambientGroupRef.current.rotation.y += ambientRotationSpeed;
       ambientGroupRef.current.rotation.x += ambientRotationSpeed * 0.3;
     }
@@ -144,13 +184,24 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
         animationState.resolve?.();
       }
     }
+
+    // Handle wave animation cleanup
+    if (waveAnimationState) {
+      const elapsed = Date.now() - waveAnimationState.startTime;
+      const progress = Math.min(elapsed / waveAnimationState.duration, 1);
+      
+      if (progress >= 1) {
+        setWaveAnimationState(null);
+      }
+    }
   });
 
   // Animate X face rotation
   const animateXFace = useCallback((xpos: number, direction: number): Promise<void> => {
-    if (animationState || hoveredCubelet || isExploded) return Promise.resolve();
+    if (animationState || hoveredCubelet || waveAnimationState || isExploded) return Promise.resolve();
     
-    setRotationColor(getNextColor());
+    const moveData = getNextMove();
+    setRotationColor(moveData.color);
     return new Promise((resolve) => {
       attachToRotationGroup('x', xpos);
       setAnimationState({
@@ -163,13 +214,14 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
         resolve,
       });
     });
-  }, [animationState, hoveredCubelet, isExploded, attachToRotationGroup, animationDuration]);
+  }, [animationState, hoveredCubelet, waveAnimationState, isExploded, attachToRotationGroup, animationDuration, getNextMove]);
 
   // Animate Y face rotation
   const animateYFace = useCallback((ypos: number, direction: number): Promise<void> => {
-    if (animationState || hoveredCubelet || isExploded) return Promise.resolve();
+    if (animationState || hoveredCubelet || waveAnimationState || isExploded) return Promise.resolve();
     
-    setRotationColor(getNextColor());
+    const moveData = getNextMove();
+    setRotationColor(moveData.color);
     return new Promise((resolve) => {
       attachToRotationGroup('y', ypos);
       setAnimationState({
@@ -182,13 +234,14 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
         resolve,
       });
     });
-  }, [animationState, hoveredCubelet, isExploded, attachToRotationGroup, animationDuration]);
+  }, [animationState, hoveredCubelet, waveAnimationState, isExploded, attachToRotationGroup, animationDuration, getNextMove]);
 
   // Animate Z face rotation
   const animateZFace = useCallback((zpos: number, direction: number): Promise<void> => {
-    if (animationState || hoveredCubelet || isExploded) return Promise.resolve();
+    if (animationState || hoveredCubelet || waveAnimationState || isExploded) return Promise.resolve();
     
-    setRotationColor(getNextColor());
+    const moveData = getNextMove();
+    setRotationColor(moveData.color);
     return new Promise((resolve) => {
       attachToRotationGroup('z', zpos);
       setAnimationState({
@@ -201,7 +254,7 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
         resolve,
       });
     });
-  }, [animationState, hoveredCubelet, isExploded, attachToRotationGroup, animationDuration]);
+  }, [animationState, hoveredCubelet, waveAnimationState, isExploded, attachToRotationGroup, animationDuration, getNextMove]);
 
   const resetCube = useCallback(() => {
     if (animationState) return; // Don't reset during animation
@@ -226,8 +279,8 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
     animateYFace,
     animateZFace,
     resetCube,
-    isAnimating: !!animationState,
-  }), [animateXFace, animateYFace, animateZFace, resetCube, animationState]);
+    isAnimating: !!animationState || !!waveAnimationState,
+  }), [animateXFace, animateYFace, animateZFace, resetCube, animationState, waveAnimationState]);
 
   // Generate all cubelet positions for a 3x3x3 cube
   const positions: Array<[number, number, number]> = [];
@@ -244,7 +297,7 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
   }
 
   const handleHover = useCallback((id: string | null) => {
-    if (isExploded) return;
+    if (isExploded || waveAnimationState) return;
     setHoveredCubelet(id);
     if (id) {
       const page = pages[hoveredPageIndex];
@@ -253,14 +306,22 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
     } else {
       setActivePage(null);
     }
-  }, [setActivePage, hoveredPageIndex, isExploded]);
+  }, [setActivePage, hoveredPageIndex, isExploded, waveAnimationState]);
 
-  const handleClick = () => {
-    if (isExploded) return;
-    onExplode();
-    setActivePage(null);
-    setSelectedPage(null);
-  };
+  const handleClick = useCallback((_id: string, _clickPosition: [number, number, number]) => {
+    if (animationState || waveAnimationState || isExploded) return;
+    
+    // Create uniform explosion from cube center - position doesn't matter
+    setWaveAnimationState({
+      isAnimating: true,
+      startTime: Date.now(),
+      duration: waveAnimationDuration,
+      sourcePosition: [0, 0, 0], // Always from center
+      maxDistance: 1, // Not used in uniform explosion
+    });
+  }, [animationState, waveAnimationState, isExploded, waveAnimationDuration]);
+
+
 
   return (
     <group ref={ambientGroupRef}>
@@ -277,9 +338,10 @@ export const RubikCube = forwardRef<RubikCubeRef, RubikCubeProps>(({ setActivePa
               isHovered={hoveredCubelet === id}
               isRotating={rotatingCubelets.includes(id)}
               rotationColor={rotationColor}
-              isBlocked={!!animationState || isExploded}
-              onClick={handleClick}
+              isBlocked={!!animationState || !!waveAnimationState || isExploded}
               isExploded={isExploded}
+              onClick={handleClick}
+              waveIntensity={calculateWaveIntensity(position, waveAnimationState)}
             />
           );
         })}
